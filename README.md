@@ -32,7 +32,7 @@ A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 mic
 
 **Boot & Hello**
 
-![Boot & Hello](ESP32_S3_Ai_v1_0_GitHub/Extra/Hello.png)
+![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32_S3_AI_v1_0_GitHub/Extra/Hello.png)
 
 **Skill Learning**
 
