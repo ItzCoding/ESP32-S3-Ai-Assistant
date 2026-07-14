@@ -464,6 +464,75 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
 
 MIT License — free to use, modify, and distribute with attribution.
 
+```
+MIT License
+
+Copyright (c) 2025 ItzCoding
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
 ---
 
-*Built with ❤️ for the ESP32-S3 · Powered by Groq · llama-3.1-8b-instant*
+## Credits
+
+### 👤 Author
+
+**ItzCoding**
+
+Creator, architect, and developer of the ESP32-S3 AI Assistant project.
+Designed the hardware integration, skills engine DSL, dual-core architecture, and all firmware logic.
+
+---
+
+### ⚡ Powered By
+
+#### Hardware Platform
+
+| Technology | Role |
+|---|---|
+| **Arduino** | Development framework and IDE |
+| **ESP32-S3** | Microcontroller — dual-core Xtensa LX7, 16 MB Flash, optional OPI PSRAM |
+| **Espressif ESP-IDF** | Underlying RTOS, peripheral drivers, and heap management |
+
+#### AI & APIs
+
+| Service | Role | Link |
+|---|---|---|
+| **Groq** | Ultra-fast AI inference — llama-3.1-8b-instant | [groq.com](https://groq.com) |
+| **Meta Llama 3.1 8B** | Large language model running on Groq | [llama.meta.com](https://llama.meta.com) |
+| **Google Gemini 2.5 Flash** | On-demand skill generation | [deepmind.google/gemini](https://deepmind.google/technologies/gemini/) |
+| **Serper.dev** | Real-time Google web search results | [serper.dev](https://serper.dev) |
+| **Meteosource** | Live weather data by city | [meteosource.com](https://www.meteosource.com) |
+| **NTP Pool Project** | Network time synchronisation | [pool.ntp.org](https://www.ntppool.org) |
+
+#### Open-Source Libraries
+
+| Library | Author / Maintainer | License |
+|---|---|---|
+| **ArduinoJson** | Benoit Blanchon | MIT |
+| **Adafruit NeoPixel** | Adafruit Industries | LGPL-3.0 |
+| **NTPClient** | Fabrice Weinberg | MIT |
+| **Time (TimeLib)** | Michael Margolis, Paul Stoffregen | LGPL |
+| **arduino-esp32** | Espressif Systems | Apache-2.0 |
+| **FreeRTOS** | Real Time Engineers Ltd | MIT |
+
+---
+
+*ESP32-S3 AI Assistant v1.0 · Made by ItzCoding · Powered by Arduino, ESP32, Groq and Gemini
