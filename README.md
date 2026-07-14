@@ -1,4 +1,4 @@
-# ESP32-S3 AI Assistant v1.0
+# ESP32-S3 AI Assistant v1.7.6
 
 A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 microcontroller — powered by Groq, Gemini, real-time web search, and a sandboxed skills engine.
 
@@ -32,19 +32,19 @@ A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 mic
 
 **Boot & Hello**
 
-![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32_S3_AI_v1_0_GitHub/Extra/Hello.png)
+![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Hello.png)
 
 **Skill Learning**
 
-![Skill Learning](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32_S3_AI_v1_0_GitHub/Extra/Skill%20learning.png)
+![Skill Learning](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Skill%20Learning.png)
 
 **Web Search**
 
-![Web Search](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32_S3_AI_v1_0_GitHub/Extra/System%20diagnosis.png)
+![Web Search](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/System%20Diagnosis.png)
 
 **System Diagnostics**
 
-![System Diagnostics](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32_S3_AI_v1_0_GitHub/Extra/Web%20Search.png)
+![System Diagnostics](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Web%20Search.png)
 
 ---
 
