@@ -32,18 +32,18 @@ A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 mic
 
 **Boot & Hello**
 
-![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant%20v1.7.6/Extra/Hello.png)
+![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Hello.png)
 **Skill Learning**
 
-![Learning skills](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant%20v1.7.6/Extra/Learning%20skills.png)
+![Learning skills](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Learning%20skills.png)
 
 **System Diagnosis**
 
-![System Diagnosis](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant%20v1.7.6/Extra/Diagnosis.png)
+![System Diagnosis](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Diagnosis.png)
 
 **Web Search**
 
-![Web Server](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant%20v1.7.6/Extra/Web%20Search.png)
+![Web Server](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.6/Extra/Web%20Search.png)
 
 ---
 
