@@ -6,6 +6,7 @@ A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 mic
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Overview](#overview)
 - [Features](#features)
 - [Hardware Requirements](#hardware-requirements)
@@ -21,17 +22,29 @@ A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 mic
 - [Serial Monitor Reference](#serial-monitor-reference)
 - [Troubleshooting](#troubleshooting)
 - [Limits & Constraints](#limits--constraints)
+- [Security Notice](#security-notice)
 - [License](#license)
+- [Credits](#credits)
 
 ---
 
 ## Screenshots
 
-| Boot & Hello | Skill Learning |
-|:---:|:---:|
-| ![Boot & Hello](Extra/Hello_1784000875130.png) | ![Skill Learning](Extra/Skill_learning_1784000875131.png) |
-| **Web Search** | **System Diagnostics** |
-| ![Web Search](Extra/Web_Search_1784000875132.png) | ![System Diagnostics](Extra/System_diagnosis_1784000875132.png) |
+**Boot & Hello**
+
+![Boot & Hello](ESP32_S3_Ai_v1_0_GitHub/Extra/Hello_1784000875130.png)
+
+**Skill Learning**
+
+![Skill Learning](ESP32_S3_Ai_v1_0_GitHub/Extra/Skill_learning_1784000875131.png)
+
+**Web Search**
+
+![Web Search](ESP32_S3_Ai_v1_0_GitHub/Extra/Web_Search_1784000875132.png)
+
+**System Diagnostics**
+
+![System Diagnostics](ESP32_S3_Ai_v1_0_GitHub/Extra/System_diagnosis_1784000875132.png)
 
 ---
 
@@ -60,7 +73,7 @@ All interaction happens over **USB Serial** (115200 baud). Type a message, press
 | **NTP Clock** | Synced real-time clock, configurable UTC offset |
 | **Diagnostics** | CPU temp · free heap · uptime · PSRAM status |
 | **Dual-core AI** | HTTP call runs on Core 0; LED + reminders stay alive on Core 1 |
-| **PSRAM Buffers** | 8 KB req + 16 KB resp buffers used **if PSRAM is present**; falls back to internal SRAM automatically |
+| **PSRAM Buffers** | 8 KB req + 16 KB resp buffers used if PSRAM is present; falls back to internal SRAM automatically |
 | **Batched Flash** | Dirty-flag system — writes sentiment/pattern/knowledge in 30 s batches |
 | **WDT Safety** | 30-second watchdog with explicit resets throughout the loop |
 | **NeoPixel Status** | Single RGB LED shows idle / thinking / error states |
@@ -73,11 +86,11 @@ All interaction happens over **USB Serial** (115200 baud). Type a message, press
 |---|---|
 | **Microcontroller** | ESP32-S3 Dev Module |
 | **Flash** | 16 MB |
-| **PSRAM** | **Optional** — 8 MB OPI PSRAM gives larger HTTP buffers; works fine without it |
+| **PSRAM** | Optional — 8 MB OPI PSRAM gives larger HTTP buffers; works fine without it |
 | **LED** | WS2812B NeoPixel × 1 (GPIO 48 — onboard on most S3 boards) |
 | **USB** | USB-to-Serial adapter or native USB CDC |
 
-> **Note:** Many ESP32-S3 DevKit boards (e.g. Unexpected Maker FeatherS3, Adafruit QT Py S3, generic S3 DevKitC-1) have the NeoPixel and OPI PSRAM already onboard. Check your board's pinout before wiring anything. If your board has no PSRAM, everything still works — the sketch detects this at boot and uses internal SRAM instead.
+> **Note:** Many ESP32-S3 DevKit boards (e.g. Unexpected Maker FeatherS3, Adafruit QT Py S3, generic S3 DevKitC-1) have the NeoPixel and OPI PSRAM already onboard. If your board has no PSRAM, everything still works — the sketch detects this at boot and uses internal SRAM instead.
 
 ---
 
@@ -107,9 +120,11 @@ ESP32-S3 GND      ──►  NeoPixel GND
 - ESP32 Arduino core **3.x** (`espressif/arduino-esp32`)
 
 Install the ESP32 core via **File → Preferences → Additional Board URLs**:
+
 ```
 https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 ```
+
 Then install via **Tools → Board → Boards Manager → esp32 by Espressif**.
 
 ### Libraries
@@ -146,13 +161,13 @@ Open **Tools** and configure as shown below. The only field that differs dependi
 | **Upload Speed** | `921600` |
 | **USB CDC On Boot** | `Enabled` *(if using native USB)* |
 
-> ℹ️ **Not sure if your board has PSRAM?** Set it to `Disabled` — the sketch will compile and run either way. If you later set it to `OPI PSRAM` on a board that has it, the sketch will automatically start using the larger HTTP buffers.
+> **Not sure if your board has PSRAM?** Set it to `Disabled` — the sketch will compile and run either way. If you later set it to `OPI PSRAM` on a board that has it, the sketch will automatically start using the larger HTTP buffers.
 
 ---
 
 ## API Keys
 
-You need accounts and free-tier keys from four services. All are free to sign up:
+You need free-tier keys from four services:
 
 | Service | Used For | Get Key At |
 |---|---|---|
@@ -165,31 +180,31 @@ You need accounts and free-tier keys from four services. All are free to sign up
 
 ## Configuration
 
-Open the `.ino` file and fill in the `Config` namespace near the top (lines 43–115). The six values you **must** change before compiling:
+Open the `.ino` file and fill in the `Config` namespace near the top of the file. The six values you **must** change before compiling:
 
 ```cpp
 namespace Config {
 
   // ── Wi-Fi ─────────────────────────────────────────────
-  constexpr const char* SSID       = "YOUR_WIFI_SSID";
-  constexpr const char* PASSWORD   = "YOUR_WIFI_PASSWORD";
+  constexpr const char* SSID           = "YOUR_WIFI_SSID";
+  constexpr const char* PASSWORD       = "YOUR_WIFI_PASSWORD";
 
   // ── Groq ──────────────────────────────────────────────
-  constexpr const char* GROQ_KEY   = "YOUR_GROQ_API_KEY";        // console.groq.com
+  constexpr const char* GROQ_KEY       = "YOUR_GROQ_API_KEY";        // console.groq.com
 
   // ── Weather ───────────────────────────────────────────
-  constexpr const char* WEATHER_KEY = "YOUR_METEOSOURCE_API_KEY"; // meteosource.com
+  constexpr const char* WEATHER_KEY    = "YOUR_METEOSOURCE_API_KEY"; // meteosource.com
 
   // ── Web Search ────────────────────────────────────────
-  constexpr const char* SERPER_API_KEY = "YOUR_SERPER_API_KEY";  // serper.dev
+  constexpr const char* SERPER_API_KEY = "YOUR_SERPER_API_KEY";      // serper.dev
 
   // ── Gemini (skill writer) ─────────────────────────────
-  constexpr const char* GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";  // aistudio.google.com/apikey
+  constexpr const char* GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";      // aistudio.google.com/apikey
 
 }
 ```
 
-### Optional tweaks
+### Optional Tweaks
 
 | Constant | Default | Description |
 |---|---|---|
@@ -208,7 +223,7 @@ namespace Config {
 
 1. **Clone or download** this repository.
 
-2. **Rename the folder** so it matches the `.ino` filename exactly:
+2. **Rename the sketch folder** so it matches the `.ino` filename exactly:
    ```
    ESP32_AI_v1_0/
    └── ESP32_AI_v1_0.ino
@@ -221,7 +236,7 @@ namespace Config {
 
 5. **Connect your ESP32-S3** via USB and select the correct port under **Tools → Port**.
 
-6. Click **Upload** (→). Compilation takes ~30–60 seconds.
+6. Click **Upload**. Compilation takes ~30–60 seconds.
 
 7. Open **Tools → Serial Monitor**, set baud rate to **115200**, and watch the boot sequence.
 
@@ -229,9 +244,9 @@ namespace Config {
 
 ## Usage
 
-All interaction is through the **Serial Monitor** (115200 baud).
+All interaction is through the **Serial Monitor** at 115200 baud.
 
-### Boot output
+### Boot Output
 
 **With PSRAM enabled and detected:**
 ```
@@ -257,7 +272,7 @@ Connecting to WiFi...
 ✅ Dual-core AI worker on Core 0
 ```
 
-> The `⚠️ PSRAM not detected` line is **not an error** — it just means the sketch will use internal SRAM for HTTP buffers instead. All features work the same either way.
+> The `⚠️ PSRAM not detected` line is **not an error** — the sketch uses internal SRAM instead and all features work the same.
 
 ### Chatting
 
@@ -274,7 +289,7 @@ You: Search for latest news on Mars missions
 🤖AI: [injects live Serper results and summarises]
 ```
 
-### Built-in commands
+### Built-in Commands
 
 | What you say | What happens |
 |---|---|
@@ -293,7 +308,7 @@ You: Search for latest news on Mars missions
 
 The skills engine lets the assistant **write and save new capabilities on demand** using Google Gemini as the code writer and a sandboxed DSL interpreter for safe execution.
 
-### Creating a skill
+### Creating a Skill
 
 Just ask naturally:
 
@@ -303,13 +318,13 @@ You: Create a skill that remembers my daily step goal and reports it
 You: Create a skill that asks AI for a motivational quote and says it
 ```
 
-Gemini writes the skill JSON, the assistant validates and saves it to FFat, and it's immediately available to trigger.
+Gemini writes the skill JSON, the assistant validates and saves it to FFat, and it is immediately available to trigger.
 
-### DSL operations reference
+### DSL Operations
 
 | Op | Description |
 |---|---|
-| `say` | Output text (supports `{varName}`, `:.Nf`, `:int`, `:sec_to_mss`, `:time` format specs) |
+| `say` | Output text — supports `{varName}`, `:.Nf`, `:int`, `:sec_to_mss`, `:time` format specifiers |
 | `set` | Set a numeric variable |
 | `set_str` | Set a string variable |
 | `inc` | Increment a numeric variable |
@@ -317,15 +332,15 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
 | `if` / `else` | Conditional branching (up to 3 levels deep) |
 | `loop` | Repeat a block 1–10 times |
 | `wait` | Pause execution (ms) |
-| `remember` | Persist a variable value to the memory system (survives reboot) |
+| `remember` | Persist a variable to the memory system — survives reboot |
 | `recall` | Load a persisted value back into a string variable |
 | `groq` | Make an inline Groq AI call and store the result in a string variable |
 
-### DSL expression functions
+### DSL Expression Functions
 
 `ABS`, `FLOOR`, `CEIL`, `ROUND`, `MIN`, `MAX`, `MOD`, `SIN`, `COS`, `RANDOM`, `RAND100`, `STRLEN_varname`, `NOW_SEC`, `NOW_DAY`, `NOW_MONTH`, `NOW_YEAR`
 
-### Limits
+### Skills Limits
 
 | Limit | Value |
 |---|---|
@@ -368,14 +383,14 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
 │  ├── /patterns.json    — topic preferences              │
 │  └── /knowledge.json   — knowledge domains              │
 └─────────────────────────────────────────────────────────┘
-         │                                  │
+         │                                   │
     HTTPS / TLS                        HTTPS / TLS
-         │                                  │
-  ┌──────▼──────┐                  ┌────────▼────────┐
-  │  Groq API   │                  │  Gemini API     │
-  │  llama-3.1  │                  │  2.5 Flash      │
-  │  8b-instant │                  │  (skill writer) │
-  └─────────────┘                  └─────────────────┘
+         │                                   │
+  ┌──────▼──────┐                   ┌────────▼────────┐
+  │  Groq API   │                   │  Gemini API     │
+  │  llama-3.1  │                   │  2.5 Flash      │
+  │  8b-instant │                   │  (skill writer) │
+  └─────────────┘                   └─────────────────┘
          │
   ┌──────▼──────┐    ┌──────────────┐
   │ Serper.dev  │    │ Meteosource  │
@@ -383,20 +398,20 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
   └─────────────┘    └──────────────┘
 ```
 
-### Data flow for an AI request
+### Data Flow for an AI Request
 
 1. User types a message → Core 1 detects intent via NL parser
-2. If it's an AI query: request body is handed to **Core 0 AI task** via binary semaphore
-3. Core 0 serializes the request — into the **PSRAM buffer** if available, or a standard `String` if not
+2. Request body is handed to **Core 0 AI task** via binary semaphore
+3. Core 0 serializes into the **PSRAM buffer** if available, or a standard `String` if not
 4. Core 1 spins: feeds WDT, updates NeoPixel every 20 ms — fully responsive either way
-5. Core 0 POSTs the request, streams the SSE response — reading into **PSRAM buffer** if available, or `http.getString()` if not
-6. Core 1 receives the completed response, prints to Serial
+5. Core 0 POSTs the request and streams the SSE response into **PSRAM buffer** if available, or `http.getString()` if not
+6. Core 1 receives the completed response and prints to Serial
 
 ---
 
 ## Serial Monitor Reference
 
-### LED status colours
+### LED Status Colours
 
 | Colour | Meaning |
 |---|---|
@@ -405,7 +420,7 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
 | 🟡 Yellow | WiFi reconnecting |
 | 🔴 Red flash | Error |
 
-### Key log prefixes
+### Log Prefixes
 
 | Prefix | Meaning |
 |---|---|
@@ -421,28 +436,28 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
 
 ## Troubleshooting
 
-### Compilation errors
+### Compilation Errors
 
 | Error | Fix |
 |---|---|
-| Library not found | Install missing library via **Tools → Manage Libraries** |
+| Library not found | Install via **Tools → Manage Libraries** |
 | `esp_psram.h: No such file` | Set **Tools → PSRAM → Disabled** — the include is automatically skipped |
 | Any other compile error | Make sure you are on ESP32 Arduino core **3.x**, not 2.x |
 
-### Runtime issues
+### Runtime Issues
 
 | Symptom | Likely Cause | Fix |
 |---|---|---|
-| `⚠️ PSRAM not detected` at boot | Board has no PSRAM, or PSRAM set to Disabled in IDE | **This is normal** — sketch uses internal SRAM instead. No action needed |
-| `Dual-core task create failed` | Stack too small | Increase `AI_TASK_STACK` value in `xTaskCreatePinnedToCore` call |
-| CPU temp always `0.0°C` | Temp sensor init failed | Check boot log; not critical, everything else still works |
-| No WiFi connection | Wrong credentials | Double-check `SSID` and `PASSWORD` in the Config namespace |
+| `⚠️ PSRAM not detected` at boot | Board has no PSRAM, or PSRAM set to Disabled | **This is normal** — sketch uses internal SRAM instead, no action needed |
+| `Dual-core task create failed` | Stack too small | Increase `AI_TASK_STACK` in `xTaskCreatePinnedToCore` |
+| CPU temp always `0.0°C` | Temp sensor init failed | Not critical — everything else still works |
+| No WiFi connection | Wrong credentials | Double-check `SSID` and `PASSWORD` in Config |
 | AI responses slow or timeout | Groq key invalid or rate limited | Verify key at [console.groq.com](https://console.groq.com/keys) |
 | Skill generation fails | Gemini key invalid | Verify key at [aistudio.google.com](https://aistudio.google.com/apikey) |
-| Weather always fails | Meteosource key invalid or city not found | Try a major city name; verify key at meteosource.com |
-| LED freezes during AI call | Running in single-core fallback | Check boot log — should say `✅ Dual-core AI worker on Core 0` |
-| Crash / reboot loop | Stack overflow or low SRAM | Try `/clear` to free chat history; reduce `MAX_CHAT_MESSAGES` |
-| FFat mount failed | Partition scheme wrong | Set **Partition Scheme → 16M Flash (3MB APP/9.9MB FATFS)** |
+| Weather always fails | Meteosource key invalid or city not found | Try a major city name; verify key |
+| LED freezes during AI call | Single-core fallback | Boot log should say `✅ Dual-core AI worker on Core 0` |
+| Crash / reboot loop | Stack overflow or low SRAM | Run `/clear` to free chat history; reduce `MAX_CHAT_MESSAGES` |
+| FFat mount failed | Wrong partition scheme | Set **Partition Scheme → 16M Flash (3MB APP/9.9MB FATFS)** |
 
 ---
 
@@ -470,20 +485,16 @@ Gemini writes the skill JSON, the assistant validates and saves it to FFat, and 
 
 ---
 
-## Credits
-
-### 👤 Author
+### Author
 
 **ItzCoding**
 
 Creator, architect, and developer of the ESP32-S3 AI Assistant project.
 Designed the hardware integration, skills engine DSL, dual-core architecture, and all firmware logic.
 
----
+### Powered By
 
-### ⚡ Powered By
-
-#### Hardware Platform
+**Hardware Platform**
 
 | Technology | Role |
 |---|---|
@@ -491,18 +502,18 @@ Designed the hardware integration, skills engine DSL, dual-core architecture, an
 | **ESP32-S3** | Microcontroller — dual-core Xtensa LX7, 16 MB Flash, optional OPI PSRAM |
 | **Espressif ESP-IDF** | Underlying RTOS, peripheral drivers, and heap management |
 
-#### AI & APIs
+**AI & APIs**
 
 | Service | Role | Link |
 |---|---|---|
 | **Groq** | Ultra-fast AI inference — llama-3.1-8b-instant | [groq.com](https://groq.com) |
 | **Meta Llama 3.1 8B** | Large language model running on Groq | [llama.meta.com](https://llama.meta.com) |
-| **Google Gemini 2.5 Flash** | On-demand skill generation | [deepmind.google/gemini](https://deepmind.google/technologies/gemini/) |
+| **Google Gemini 2.5 Flash** | On-demand skill generation | [deepmind.google](https://deepmind.google/technologies/gemini/) |
 | **Serper.dev** | Real-time Google web search results | [serper.dev](https://serper.dev) |
 | **Meteosource** | Live weather data by city | [meteosource.com](https://www.meteosource.com) |
 | **NTP Pool Project** | Network time synchronisation | [pool.ntp.org](https://www.ntppool.org) |
 
-#### Open-Source Libraries
+**Open-Source Libraries**
 
 | Library | Author / Maintainer | License |
 |---|---|---|
