@@ -36,7 +36,7 @@ A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 mic
 
 **Skill Learning**
 
-![Skill Learning](ESP32_S3_Ai_v1_0_GitHub/Extra/Skill_learning.png)
+![Skill Learning](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32_S3_AI_v1_0_GitHub/Extra/Skill%20learning.png)
 
 **Web Search**
 
