@@ -44,16 +44,16 @@ An advanced, self-learning, voice-and-text embedded AI companion running nativel
 ## Screenshots
 
 ### Boot Sequence & System Initialization
-![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Hello.png)
+![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-AI-Assistant-v1.7.8/Extra/Hello.png)
 
 ### Real-Time Skill Generation & DSL Execution
-![Learning skills](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Learning%20skills.png)
+![Learning skills](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-AI-Assistant-v1.7.8/Extra/Learning%20skills.png)
 
 ### Deep System Telemetry & AI Health Scan
-![System Diagnosis](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Diagnosis.png)
+![System Diagnosis](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-AI-Assistant-v1.7.8/Extra/Diagnosis.png)
 
 ### Web Search & Information Synthesis
-![Web Search](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Web%20Search.png)
+![Web Search](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-AI-Assistant-v1.7.8/Extra/Web%20Search.png)
 
 ---
 
@@ -84,15 +84,15 @@ The ESP32-S3 AI Assistant is engineered specifically for high-efficiency embedde
                                   │                         │
                              TLS 1.2 / HTTPS           TLS 1.2 / HTTPS
                                   │                         │
-              ┌───────────────────┴───┐                 ┌───┴───────────────────┐
-              │     Groq Cloud API    │                 │    Google Gemini API  │
+              ┌───────────────────┴─────┐                 ┌───┴───────────────────┐
+              │     Groq Cloud API      │                 │    Google Gemini API  │
               │ llama-3.3-70b-versatile │                 │     Gemini 2.5 Flash  │
-              └───────────────────────┘                 └───────────────────────┘
+              └────────────┌────────────┘                 └───────────────────────┘
                           │                                         │
-              ┌───────────┴───────────┐                 ┌───────────┴───────────┐
-              │      Serper.dev       │                 │   Meteosource API     │
-              │    Google Search      │                 │    Live Weather       │
-              └───────────────────────┘                 └───────────────────────┘
+               ┌───────────┴───────────┐                  ┌───────────┴───────────┐
+               │      Serper.dev       │                  │   Meteosource API     │
+               │    Google Search      │                  │    Live Weather       │
+               └───────────────────────┘                  └───────────────────────┘
 ```
 
 ---
