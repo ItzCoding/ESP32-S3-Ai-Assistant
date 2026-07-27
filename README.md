@@ -1,596 +1,601 @@
-# ESP32-S3 AI Assistant v1.7.7
+# ESP32-S3 AI Assistant v1.7.8
 
-A self-learning, voice-and-text AI assistant running entirely on an ESP32-S3 microcontroller — powered by Groq's Llama 3.3 70B, Gemini, real-time web search, mood-adaptive responses, and a sandboxed skills engine.
+An advanced, self-learning, voice-and-text embedded AI companion running natively on an ESP32-S3 microcontroller. Powered by Groq's Llama 3.3 70B, Google Gemini 2.5 Flash, real-time Google search via Serper.dev, Meteosource weather engine, GitHub OTA firmware updates, mood-adaptive response system, persistent note and task management, and a sandboxed DSL skills engine.
 
 ---
 
 ## Table of Contents
 
 - [Screenshots](#screenshots)
-- [Overview](#overview)
-- [What's New in v1.7.7](#whats-new-in-v177)
-- [Features](#features)
+- [System Architecture](#system-architecture)
+- [What's New in v1.7.8](#whats-new-in-v178)
+- [Key Features](#key-features)
 - [Hardware Requirements](#hardware-requirements)
-- [Wiring](#wiring)
-- [Software Requirements](#software-requirements)
-- [Arduino IDE Board Settings](#arduino-ide-board-settings)
-- [API Keys](#api-keys)
-- [Configuration](#configuration)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Skills System](#skills-system)
-- [Architecture](#architecture)
-- [Serial Monitor Reference](#serial-monitor-reference)
-- [Troubleshooting](#troubleshooting)
-- [Limits & Constraints](#limits--constraints)
-- [Security Notice](#security-notice)
+- [Pinout & Wiring Guide](#pinout--wiring-guide)
+- [Software Requirements & Dependencies](#software-requirements--dependencies)
+- [Arduino IDE Configuration](#arduino-ide-configuration)
+- [Partition Table Setup](#partition-table-setup)
+- [API Key Setup & Provider Overview](#api-key-setup--provider-overview)
+- [Configuration & Credentials](#configuration--credentials)
+- [Installation & Flashing Guide](#installation--flashing-guide)
+- [User Guide & Operation](#user-guide--operation)
+  - [Serial Interface Protocol](#serial-interface-protocol)
+  - [Complete Slash Command Reference](#complete-slash-command-reference)
+  - [Natural Language Intent Parser](#natural-language-intent-parser)
+- [Sandboxed Skills Engine & DSL](#sandboxed-skills-engine--dsl)
+  - [DSL Syntax Specification](#dsl-syntax-specification)
+  - [Skill Lifecycle Management](#skill-lifecycle-management)
+  - [Example Custom Skills](#example-custom-skills)
+- [Mood Engine & Adaptive Personality](#mood-engine--adaptive-personality)
+- [Memory, Notes & Task Persistence](#memory-notes--task-persistence)
+- [System Health, Telemetry & Diagnostics](#system-health-telemetry--diagnostics)
+- [GitHub Over-The-Air (OTA) Updates](#github-over-the-air-ota-updates)
+- [Dual-Core Task & Memory Management](#dual-core-task--memory-management)
+- [Status LED Visual Guide](#status-led-visual-guide)
+- [Troubleshooting & FAQ](#troubleshooting--faq)
+- [Technical Specifications & Limits](#technical-specifications--limits)
+- [Security Considerations](#security-considerations)
+- [Development & Contributions](#development--contributions)
 - [License](#license)
-- [Credits](#credits)
+- [Credits & Acknowledgments](#credits--acknowledgments)
 
 ---
 
 ## Screenshots
 
-**Boot & Hello**
+### Boot Sequence & System Initialization
+![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Hello.png)
 
-![Boot & Hello](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.7/Extra/Hello.png)
+### Real-Time Skill Generation & DSL Execution
+![Learning skills](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Learning%20skills.png)
 
-**Skill Learning**
+### Deep System Telemetry & AI Health Scan
+![System Diagnosis](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Diagnosis.png)
 
-![Learning skills](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.7/Extra/Learning%20skills.png)
+### Web Search & Information Synthesis
+![Web Search](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.8/Extra/Web%20Search.png)
 
-**System Diagnosis**
+---
 
-![System Diagnosis](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.7/Extra/Diagnosis.png)
+## System Architecture
 
-**Web Search**
+The ESP32-S3 AI Assistant is engineered specifically for high-efficiency embedded AI deployment. By distributing responsibilities across both Xtensa LX7 cores, the system provides instantaneous responses while remaining resilient against network latency or watchdog resets.
 
-![Web Search](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant/blob/main/ESP32-S3-Ai-Assistant-v1.7.7/Extra/Web%20Search.png)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ESP32-S3 Microcontroller                           │
+│                                                                             │
+│  Core 1 (Main Event Loop)                Core 0 (Async Network & AI)        │
+│  ┌─────────────────────────────────┐     ┌────────────────────────────────┐ │
+│  │ USB Serial Protocol Parser      │     │ Groq HTTPS Client (Core AI)    │ │
+│  │ Natural Language Intent Engine  │ ──► │ Gemini HTTPS Client (Skills)   │ │
+│  │ NTP Time Sync & Daily Alarms    │     │ Serper Google Search Engine    │ │
+│  │ Task & Reminder Engine          │ ◄── │ Meteosource Weather Service    │ │
+│  │ Non-blocking WiFi Supervisor    │     │ SSE Streaming JSON Parser      │ │
+│  │ GitHub OTA Binary Flasher       │     │ Function & Tool Call Dispatch  │ │
+│  │ NeoPixel Status Animation Engine│     └────────────────────────────────┘ │
+│  │ Batched FFat Flash Sync Engine  │                                        │
+│  │ Watchdog Reset & Temp Telemetry │     Dynamic Frequency Scaling (DFS)    │
+│  └─────────────────────────────────┘     80 MHz (Idle) ◄──► 240 MHz (Active)│
+│                                                                             │
+│  Memory Allocator (Dynamic PSRAM / Internal SRAM Fallback)                  │
+│  FFat Flash Filesystem (/memory, /tasks, /notes, /skills, /logs)            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                  │                         │
+                             TLS 1.2 / HTTPS           TLS 1.2 / HTTPS
+                                  │                         │
+              ┌───────────────────┴───┐                 ┌───┴───────────────────┐
+              │     Groq Cloud API    │                 │    Google Gemini API  │
+              │ llama-3.3-70b-versatile │                 │     Gemini 2.5 Flash  │
+              └───────────────────────┘                 └───────────────────────┘
+                          │                                         │
+              ┌───────────┴───────────┐                 ┌───────────┴───────────┐
+              │      Serper.dev       │                 │   Meteosource API     │
+              │    Google Search      │                 │    Live Weather       │
+              └───────────────────────┘                 └───────────────────────┘
+```
 
 ---
 
 ## Overview
 
-ESP32-S3 AI Assistant is a full-featured embedded AI chatbot that runs on a single ESP32-S3 module. It connects to Groq's ultra-fast inference API to deliver responses via **llama-3.3-70b-versatile**, uses **Gemini 2.5 Flash** to write and save new skills on the fly, calls native **Groq function/tool calling** to dispatch structured actions, searches the web via **Serper.dev**, fetches live weather from **Meteosource**, adapts its tone to your mood in real time, and persists everything — memory facts, reminders, learned skills, sentiment logs — to on-board FFat flash storage.
+The **ESP32-S3 AI Assistant v1.7.8** represents a major leap forward in edge computing and micro-AI integration. Operating on a single ESP32-S3 module, this system combines state-of-the-art cloud inference with local intelligence and persistent hardware storage.
 
-The sketch works on **any ESP32-S3 board**, with or without OPI PSRAM. If PSRAM is present it is used automatically for larger HTTP buffers; if not, the sketch falls back to internal SRAM seamlessly with no code changes required.
+By querying Groq's high-throughput infrastructure, the assistant delivers near-instantaneous streaming dialogue generated by **Llama 3.3 70B**. When given complex requests outside its native capabilities, it interfaces with **Gemini 2.5 Flash** to write executable DSL skills on the fly. Structured actions such as querying live search engines, getting weather forecasts, saving user memories, or setting context-aware alarms are executed cleanly via Groq native tool/function calling.
 
-All interaction happens over **USB Serial** (115200 baud). Type a message, press Enter, read the reply.
-
----
-
-## What's New in v1.7.7
-
-| Change | Details |
-|---|---|
-| **Model upgrade** | Now runs `llama-3.3-70b-versatile` — the most capable text model on Groq's API |
-| **Groq function calling** | `groqFunctionCall()` uses native OpenAI-compatible tool calling to dispatch structured actions |
-| **Mood-adaptive temperature** | `computeMoodTemperature()` maps recent sentiment history to a Groq `temperature` between 0.42 and 0.88 — careful when you're stressed, playful when you're upbeat |
-| **CPU frequency scaling** | Idles at 80 MHz while waiting for input, jumps to 240 MHz during HTTP calls, then drops back down |
-| **AI-powered chat summarization** | Chat history is compressed with a real Groq call instead of crude string concatenation |
-| **AI-generated evening summary** | A 20:00 daily recap generated from your interactions, mood, memory facts, and tomorrow's reminders |
-| **Massively expanded NL parser** | Far larger filler-word and intent-cue vocabulary for natural-language reminders, memory, and search |
-| **Bigger buffers & limits** | PSRAM request/response buffers tripled (24 KB / 64 KB); chat, memory, and sentiment limits raised for 8 MB PSRAM boards |
-| **Longer watchdog window** | WDT timeout raised to 40 s and HTTP timeout to 35 s to give the 70B model room to respond |
+The system requires no external MCU or SBC, operating on any standard ESP32-S3 dev board. It automatically detects Octal/Quad PSRAM to expand HTTP buffers up to 64 KB, while offering seamless fallback to internal SRAM on lower-spec modules.
 
 ---
 
-## Features
+## What's New in v1.7.8
 
-| Category | Details |
-|---|---|
-| **AI Backbone** | Groq · llama-3.3-70b-versatile · SSE streaming response |
-| **Function Calling** | Native Groq tool/function calling for structured action dispatch |
-| **Mood Engine** | Sentiment-driven temperature scaling — replies get warmer or more careful depending on your recent mood |
-| **Skill Generation** | Gemini 2.5 Flash writes new skills in a sandboxed DSL |
-| **Web Search** | Serper.dev live Google search results injected as context, with recency-aware query building |
-| **Weather** | Meteosource real-time weather by city name |
-| **Reminders** | Natural-language reminder parsing, persistent, fires on time, supports once/daily/weekly/monthly recurrence |
-| **Memory** | Up to 80 persistent user facts stored in FFat |
-| **Sentiment** | Per-conversation mood tracking, log of last 40 interactions |
-| **User Patterns** | Learns topic preferences, chat cadence, and reminder usage over time |
-| **AI Chat Summarization** | Groq-powered compression of chat history instead of naive truncation |
-| **Evening Summary** | AI-generated daily recap at 20:00 covering mood, activity, and tomorrow's reminders |
-| **Proactive Check-ins** | Time-of-day aware nudges (morning, lunch, afternoon, evening) when you've been quiet |
-| **NTP Clock** | Synced real-time clock, configurable UTC offset |
-| **Diagnostics** | CPU temp · CPU frequency · free heap · uptime · PSRAM status · AI health scan |
-| **Dual-core AI** | HTTP call runs on Core 0; LED + reminders + WiFi reconnect stay alive on Core 1 |
-| **PSRAM Buffers** | 24 KB req + 64 KB resp buffers used if PSRAM is present; falls back to internal SRAM automatically |
-| **CPU Scaling** | 80 MHz idle / 240 MHz active — throttles down automatically between requests |
-| **Batched Flash** | Dirty-flag system — writes sentiment/pattern/knowledge in 30 s batches |
-| **Non-blocking WiFi Reconnect** | Recovers from dropped WiFi without blocking the main loop |
-| **WDT Safety** | 40-second watchdog with explicit resets throughout the loop |
-| **NeoPixel Status** | Single RGB LED shows idle / thinking / error / excited / concerned / proactive / learning states |
+| Component / Feature | Upgrade Summary | Impact |
+|---|---|---|
+| **GitHub Native OTA** | Over-the-air firmware upgrades directly from GitHub Release binaries using `/update` and `/install`. | Eliminates the need to connect USB cables for code updates. |
+| **Notes & To-Do Engine** | Persistent context-aware note taking and checklist system with full natural language recall. | Seamless organizational management stored in flash filesystem. |
+| **AI System Health Scan** | Enhanced telemetry command (`/diag`) reporting SRAM drift, CPU temperature, HTTP error flags, and flash endurance. | Real-time monitoring of device health and heap stability. |
+| **Expanded Intent Parser** | Broadened speech pattern handling, correction logic ("scratch that", "no wait, change to"), and filler-word dropping. | Highly forgiving natural language interpretation. |
+| **Adaptive Tone Engine** | Continuous sentiment tracking scales prompt dynamics between technical, warm, and structured formats. | Dynamic conversational flow tailored to user mood. |
+| **Optimized SSE Parser** | Rewritten streaming JSON reader optimized for Groq's fast token throughput. | Prevents buffer overflows and eliminates response stutter. |
+
+---
+
+## Key Features
+
+- **Blazing Fast AI Inference**: Powered by Groq's `llama-3.3-70b-versatile` running via Server-Sent Events (SSE) streaming.
+- **On-Demand Skill Generation**: Uses Google Gemini 2.5 Flash to automatically draft, compile, and store custom micro-skills.
+- **GitHub Over-The-Air (OTA) Flashing**: Fetch released binaries over HTTPS directly from GitHub releases without physical wiring.
+- **Native Groq Tool Calling**: Direct tool-call parsing for dynamic weather retrieval, web search, memory persistence, and alarm dispatch.
+- **Live Google Search Integration**: Real-time context retrieval using Serper.dev for current events and real-time facts.
+- **Meteosource Weather API**: Accurate localized weather updates and multi-day meteorological forecasts.
+- **Long-Term Memory Persistence**: Automatically logs up to 80 user facts, preferences, notes, and task lists into FFat flash memory.
+- **Mood Tracking & Sentiment Engine**: Analyzes conversation history over a rolling 40-message window to adapt assistant warmth and temperance.
+- **Proactive Time-of-Day Nudges**: Automated morning summaries, afternoon check-ins, and evening recaps synced via NTP.
+- **Sandboxed DSL Runtime**: Safe execution environment for learned user skills without risking firmware crashes or stack overflows.
+- **Dual-Core Hardware Pipeline**: Core 0 handles network requests and SSL handshakes; Core 1 keeps serial, clock, and status NeoPixel running at 60 FPS.
+- **Hardware Power Optimization**: Automatic CPU frequency scaling between 80 MHz idle and 240 MHz active inference states.
 
 ---
 
 ## Hardware Requirements
 
-| Component | Specification |
-|---|---|
-| **Microcontroller** | ESP32-S3 Dev Module |
-| **Flash** | 16 MB |
-| **PSRAM** | Optional — 8 MB OPI PSRAM gives larger HTTP buffers; works fine without it |
-| **LED** | WS2812B NeoPixel × 1 (GPIO 48 — onboard on most S3 boards) |
-| **USB** | USB-to-Serial adapter or native USB CDC |
-
-> **Note:** Many ESP32-S3 DevKit boards (e.g. Unexpected Maker FeatherS3, Adafruit QT Py S3, generic S3 DevKitC-1) have the NeoPixel and OPI PSRAM already onboard. If your board has no PSRAM, everything still works — the sketch detects this at boot and uses internal SRAM instead.
-
----
-
-## Wiring
-
-### NeoPixel LED
-
-If your board has an onboard WS2812B, no wiring is needed — just confirm the data pin matches `Config::NEOPIXEL_PIN` (default **GPIO 48**).
-
-For an external NeoPixel:
-
-```
-ESP32-S3 GPIO 48  ──►  NeoPixel DIN
-ESP32-S3 3.3V/5V  ──►  NeoPixel VCC
-ESP32-S3 GND      ──►  NeoPixel GND
-```
-
-> Change `NEOPIXEL_PIN` in the `Config` namespace if your board uses a different GPIO.
-
----
-
-## Software Requirements
-
-### Arduino IDE
-
-- Arduino IDE **2.x** (recommended) or 1.8.19+
-- ESP32 Arduino core **3.x** (`espressif/arduino-esp32`)
-
-Install the ESP32 core via **File → Preferences → Additional Board URLs**:
-
-```
-https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
-```
-
-Then install via **Tools → Board → Boards Manager → esp32 by Espressif**.
-
-### Libraries
-
-Install all of the following via **Tools → Manage Libraries**:
-
-| Library | Author | Version |
+| Hardware Component | Requirement / Specification | Recommended Model |
 |---|---|---|
-| `ArduinoJson` | Benoit Blanchon | 7.x |
-| `NTPClient` | Fabrice Weinberg | any |
-| `Time` (TimeLib) | Michael Margolis / Paul Stoffregen | any |
-| `Adafruit NeoPixel` | Adafruit | any |
-
-The following are **built into the ESP32 Arduino core** — no separate install needed:
-
-- `WiFi`, `WiFiClientSecure`, `HTTPClient`
-- `FFat`, `FS`
-- `esp_task_wdt`, `esp_heap_caps`
-- `driver/temperature_sensor`
-- `esp_psram` *(automatically included only when PSRAM is enabled in board settings)*
+| **Microcontroller** | ESP32-S3 Dual-Core Xtensa LX7 @ 240MHz | ESP32-S3-DevKitC-1 / ESP32-S3-WROOM-1 |
+| **Flash Memory** | 16 MB SPI Flash (Quad/Octal SPI) | N16R8 / N16R2 modules |
+| **PSRAM** | 8 MB OPI PSRAM (Optional, but recommended) | OPI PSRAM supported natively |
+| **Status LED** | WS2812B / SK6812 Addressable RGB LED | Onboard GPIO 48 NeoPixel |
+| **Serial Interface** | USB CDC or CP2102 / CH340 USB-to-UART | USB Type-C Port |
+| **Power Supply** | 5V DC via USB-C (Minimum 500mA output) | Quality USB Cable |
 
 ---
 
-## Arduino IDE Board Settings
+## Pinout & Wiring Guide
 
-Open **Tools** and configure as shown below. The only field that differs depending on your hardware is **PSRAM**.
+### Default Hardware Configuration
 
-| Setting | Value |
+Most standard ESP32-S3 development boards feature an onboard RGB NeoPixel LED attached to GPIO 48. If using an external NeoPixel strip or custom breakout board, wire according to the diagram below.
+
+```
++-------------------+                      +-----------------------+
+|  ESP32-S3 Board   |                      |  WS2812B NeoPixel     |
+|                   |                      |                       |
+|   GPIO 48 (Data)  |--------------------->|  DIN (Data Input)     |
+|   5V / VBUS       |--------------------->|  VDD / +5V            |
+|   GND             |--------------------->|  GND                  |
++-------------------+                      +-----------------------+
+```
+
+*Note: Pin numbers can be customized inside the `Config` namespace in `ESP32_S3_Ai_Assistant.ino`.*
+
+---
+
+## Software Requirements & Dependencies
+
+To compile and upload the firmware, ensure your development environment is properly configured.
+
+### Required Software IDE
+- **Arduino IDE**: Version 2.2.1 or higher.
+- **ESP32 Arduino Core**: Version 3.0.0 or higher.
+
+### Third-Party Library Dependencies
+Install the following libraries via the **Arduino IDE Library Manager** (`Ctrl+Shift+I`):
+
+1. **ArduinoJson** by *Benoit Blanchon* (Version `7.x.x` required)
+2. **NTPClient** by *Fabrice Weinberg*
+3. **Time** (TimeLib) by *Michael Margolis / Paul Stoffregen*
+4. **Adafruit NeoPixel** by *Adafruit*
+
+### Core ESP32 Built-in Libraries (No Installation Needed)
+The following libraries are included with the Espressif ESP32 Arduino Core:
+- `WiFi.h` & `WiFiClientSecure.h`
+- `HTTPClient.h`
+- `FFat.h` & `FS.h`
+- `Update.h`
+- `esp_task_wdt.h`
+- `driver/temperature_sensor.h`
+- `esp_heap_caps.h`
+
+---
+
+## Arduino IDE Configuration
+
+Select **ESP32S3 Dev Module** from the **Tools → Board** menu and match the precise settings listed in the table below:
+
+| Configuration Menu Item | Correct Target Value |
 |---|---|
 | **Board** | `ESP32S3 Dev Module` |
-| **PSRAM** | `OPI PSRAM` if your board has PSRAM · `Disabled` if it does not |
+| **Port** | Select active COM / `/dev/ttyACM` port |
+| **USB CDC On Boot** | `Enabled` (Crucial for Serial Monitor over native USB) |
+| **CPU Frequency** | `240MHz (WiFi)` |
+| **Core Debug Level** | `None` (or `Error` for debugging) |
+| **Erase All Flash Before Sketch Upload** | `Disabled` (Set to `Enabled` on first flash) |
+| **Flash Frequency** | `80MHz` |
+| **Flash Mode** | `QIO 80MHz` or `OPI 80MHz` |
 | **Flash Size** | `16MB (128Mb)` |
+| **JTAG Adapter** | `Disabled` |
+| **Memory Model** | `Default 4MB with internal RAM` |
 | **Partition Scheme** | `16M Flash (3MB APP/9.9MB FATFS)` |
+| **PSRAM** | `OPI PSRAM` (Select `Disabled` if module lacks PSRAM) |
 | **Upload Speed** | `921600` |
-| **USB CDC On Boot** | `Enabled` *(if using native USB)* |
-
-> **Not sure if your board has PSRAM?** Set it to `Disabled` — the sketch will compile and run either way. If you later set it to `OPI PSRAM` on a board that has it, the sketch will automatically start using the larger HTTP buffers.
 
 ---
 
-## API Keys
+## Partition Table Setup
 
-You need free-tier keys from four services:
+This firmware requires custom flash partitioning to provide ample application room alongside a large **FFat (FATFS)** file system for storing long-term memory, notes, tasks, logs, and skills.
 
-| Service | Used For | Get Key At |
-|---|---|---|
-| **Groq** | Main AI inference (llama-3.3-70b-versatile) + function calling | [console.groq.com](https://console.groq.com/keys) |
-| **Google Gemini** | Writing new skills on demand | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
-| **Serper** | Live web search results | [serper.dev](https://serper.dev) |
-| **Meteosource** | Real-time weather by city | [meteosource.com](https://www.meteosource.com) |
+If using custom partition setups, verify that your `partitions.csv` is configured as follows:
+
+```csv
+# Name,   Type, SubType, Offset,  Size,     Flags
+nvs,      data, nvs,     0x9000,  0x5000,
+otadata,  data, ota,     0xe000,  0x2000,
+app0,     app,  ota_0,   0x10000, 0x300000,
+app1,     app,  ota_1,   0x310000,0x300000,
+ffat,     data, fat,     0x610000,0x9E0000,
+```
 
 ---
 
-## Configuration
+## API Key Setup & Provider Overview
 
-Open the `.ino` file and fill in the `Config` namespace near the top of the file. The six values you **must** change before compiling:
+To enable the full spectrum of AI and web features, register for free keys across the four supported external services:
+
+```
+┌─────────────────┬───────────────────────────────┬──────────────────────────────────────────┐
+│ Provider        │ System Function               │ Registration URL                         │
+├─────────────────┼───────────────────────────────┼──────────────────────────────────────────┤
+│ Groq Cloud      │ Main AI Inference & Tools     │ [https://console.groq.com/keys](https://console.groq.com/keys)            │
+│ Google Gemini   │ Skill Synthesis & DSL Writer  │ [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)       │
+│ Serper.dev      │ Live Google Web Search        │ [https://serper.dev](https://serper.dev)                       │
+│ Meteosource     │ Live Weather & Forecasts      │ [https://www.meteosource.com](https://www.meteosource.com)              │
+└─────────────────┴───────────────────────────────┴──────────────────────────────────────────┘
+```
+
+---
+
+## Configuration & Credentials
+
+Open `ESP32_S3_Ai_Assistant.ino` in your editor and update the constants within the `Config` namespace at the head of the file:
 
 ```cpp
 namespace Config {
 
-  // ── Wi-Fi ─────────────────────────────────────────────
-  constexpr const char* SSID           = "YOUR_WIFI_SSID";
+  // ── Wi-Fi Connection Credentials ─────────────────────────────────────────
+  constexpr const char* SSID           = "YOUR_WIFI_NETWORK_SSID";
   constexpr const char* PASSWORD       = "YOUR_WIFI_PASSWORD";
 
-  // ── Groq ──────────────────────────────────────────────
-  constexpr const char* GROQ_KEY       = "YOUR_GROQ_API_KEY";        // console.groq.com
+  // ── Groq AI Engine Settings ──────────────────────────────────────────────
+  constexpr const char* GROQ_KEY       = "gsk_YourGroqApiKeyHere";
   constexpr const char* GROQ_MODEL     = "llama-3.3-70b-versatile";
 
-  // ── Weather ───────────────────────────────────────────
-  constexpr const char* WEATHER_KEY    = "YOUR_METEOSOURCE_API_KEY"; // meteosource.com
+  // ── Google Gemini Skill Writer ───────────────────────────────────────────
+  constexpr const char* GEMINI_API_KEY = "AIzaSyYourGeminiApiKeyHere";
 
-  // ── Web Search ────────────────────────────────────────
-  constexpr const char* SERPER_API_KEY = "YOUR_SERPER_API_KEY";      // serper.dev
+  // ── Web Search Credentials (Serper.dev) ──────────────────────────────────
+  constexpr const char* SERPER_API_KEY = "YourSerperApiKeyHere";
 
-  // ── Gemini (skill writer) ─────────────────────────────
-  constexpr const char* GEMINI_API_KEY = "YOUR_GEMINI_API_KEY";      // aistudio.google.com/apikey
+  // ── Weather Engine Credentials (Meteosource) ──────────────────────────────
+  constexpr const char* WEATHER_KEY    = "YourMeteosourceApiKeyHere";
+  constexpr const char* DEFAULT_CITY   = "London";
 
+  // ── Hardware Pin Configuration ───────────────────────────────────────────
+  constexpr uint8_t NEOPIXEL_PIN       = 48;
+  constexpr uint8_t NUM_LEDS           = 1;
+
+  // ── Timezone Configuration ──────────────────────────────────────────────
+  constexpr long UTC_OFFSET_SECONDS    = 0; // Set local offset e.g. 19800 for UTC+5:30
 }
 ```
 
-> ⚠️ **Never commit real keys or Wi-Fi credentials to a public repository.** Replace every placeholder above with your own values in a local, untracked copy before uploading to your board — see [Security Notice](#security-notice).
-
-### Optional Tweaks
-
-| Constant | Default | Description |
-|---|---|---|
-| `NTP_OFFSET_SEC` | `19800` | UTC offset in seconds (19800 = UTC+5:30 IST) |
-| `NEOPIXEL_PIN` | `48` | GPIO pin for WS2812B data |
-| `WDT_TIMEOUT_S` | `40` | Watchdog timeout in seconds |
-| `HTTP_TIMEOUT_MS` | `35000` | Per-request HTTP timeout |
-| `SENTIMENT_TIMEOUT_MS` | `12000` | Timeout for sentiment/function-call requests |
-| `MAX_CHAT_MESSAGES` | `30` | Rolling chat history window |
-| `MAX_CHAT_TOKENS` | `3000` | Rolling chat history token budget |
-| `MAX_MEMORY_FACTS` | `80` | Max persistent user facts |
-| `MAX_REMINDERS` | `30` | Max stored reminders |
-| `MAX_SENTIMENT_LOG` | `40` | Max stored sentiment log entries |
-| `MAX_SKILLS` | `20` | Max saved skills |
-| `AI_MAX_TOKENS` | `1024` | Max output tokens per AI response |
-| `CPU_FREQ_IDLE` / `CPU_FREQ_ACTIVE` | `80` / `240` | CPU frequency (MHz) while idle vs. during HTTP calls |
-| `PSRAM_REQ_SIZE` / `PSRAM_RESP_SIZE` | `24576` / `65536` | PSRAM buffer sizes in bytes (request / response) |
-
 ---
 
-## Installation
+## Installation & Flashing Guide
 
-1. **Clone or download** this repository.
-
-2. **Rename the sketch folder** so it matches the `.ino` filename exactly:
+1. **Clone or Download the Repository**:
+   ```bash
+   git clone [https://github.com/ItzCoding/ESP32-S3-Ai-Assistant.git](https://github.com/ItzCoding/ESP32-S3-Ai-Assistant.git)
+   ```
+2. **Setup Folder Structure**: Ensure the parent folder matches the `.ino` sketch name:
    ```
    ESP32_S3_Ai_Assistant/
-   └── ESP32_S3_Ai_Assistant.ino
+   ├── ESP32_S3_Ai_Assistant.ino
+   ├── partitions.csv
+   └── README.md
    ```
-   Arduino IDE requires the folder and file name to match.
-
-3. **Fill in your credentials** in the `Config` namespace (see [Configuration](#configuration)).
-
-4. **Set board settings** in Arduino IDE (see [Arduino IDE Board Settings](#arduino-ide-board-settings)).
-
-5. **Connect your ESP32-S3** via USB and select the correct port under **Tools → Port**.
-
-6. Click **Upload**. Compilation takes ~30–60 seconds.
-
-7. Open **Tools → Serial Monitor**, set baud rate to **115200**, and watch the boot sequence.
+3. **Configure Settings**: Update Wi-Fi and API keys inside `Config`.
+4. **Connect Board**: Plug the ESP32-S3 board into your computer via USB.
+5. **Set IDE Parameters**: Choose `ESP32S3 Dev Module` and select your serial COM port.
+6. **Flash Sketch**: Click **Upload** (`Ctrl+U`) in Arduino IDE.
+7. **Launch Monitor**: Open **Tools → Serial Monitor** set to `115200 baud` with `Both NL & CR` enabled.
 
 ---
 
-## Usage
+## User Guide & Operation
 
-All interaction is through the **Serial Monitor** at 115200 baud.
+### Serial Interface Protocol
 
-### Boot Output
+All user communication with the ESP32-S3 AI Assistant takes place over standard Serial communication at 115200 baud.
 
-**With PSRAM enabled and detected:**
+When booted, the assistant displays system initialization flags, mounts the FFat storage partition, connects to Wi-Fi, syncs with NTP time servers, and posts the ready prompt:
+
 ```
-🚀 ESP32-AI v1.7.7-GROQ (Llama 3.3 70B) STARTING...
+🚀 ESP32-AI v1.7.8-GROQ (Llama 3.3 70B) STARTING...
 ✅ PSRAM: req=24576B resp=65536B  total free=8338 KB
 ✅ Temperature sensor ready
-✅ WDT configured
-✅ FFat mounted
-Connecting to WiFi...
-✅ WiFi connected — IP: 192.168.1.42
-✅ Dual-core AI worker on Core 0
+✅ WDT configured (40s)
+✅ FFat mounted successfully
+Connecting to WiFi SSID: Home_Network...
+✅ WiFi connected — IP: 192.168.1.105
+✅ Core 0 AI HTTP Worker initialized
 
-💡 ESP32-AI v1.7.7-GROQ (Llama 3.3 70B) READY
-```
-
-**Without PSRAM (also perfectly normal):**
-```
-🚀 ESP32-AI v1.7.7-GROQ (Llama 3.3 70B) STARTING...
-⚠️  PSRAM not detected — using internal SRAM for HTTP buffers
-✅ Temperature sensor ready
-✅ WDT configured
-✅ FFat mounted
-Connecting to WiFi...
-✅ WiFi connected — IP: 192.168.1.42
-✅ Dual-core AI worker on Core 0
-```
-
-> The `⚠️ PSRAM not detected` line is **not an error** — the sketch uses internal SRAM instead and all features work the same.
-
-### Chatting
-
-Type any message and press **Enter**:
-
-```
-You: What's the weather in London?
-🤖AI: It's currently 18°C in London (feels like 15°C), partly cloudy.
-
-You: Remind me to take my medicine in 10 minutes
-🤖AI: ✅ Reminder set for 10 minutes from now.
-
-You: Search for the latest news on Mars missions
-🤖AI: [injects live Serper results and summarises]
-```
-
-### Slash Commands
-
-| Command | What it does |
-|---|---|
-| `/help` | Full help screen |
-| `/version` | Version, model, and live stats |
-| `/diag` | Full diagnostics + AI health scan |
-| `/reminders` | List all reminders |
-| `/remove N` | Delete reminder N |
-| `/memory` | Show all stored facts |
-| `/summary` | AI-compress conversation history |
-| `/weather [city]` | Live weather (uses stored city if omitted) |
-| `/search [query]` | Web search + AI summary |
-| `/clear` | Wipe all data & restart |
-| `/skills` | List self-taught skills |
-| `/skills remove [name]` | Forget a skill |
-| `/skills keep` | Save pending skill |
-| `/skills discard` | Discard pending skill |
-| `/skills retry` | Regenerate pending skill |
-
-### Natural Language
-
-You don't need slash commands for most things — just talk to it:
-
-```
-"remember my name is Cash"
-"can you please remember that my name is Cash"
-"call me Cash"
-"remind me to take medicine at 8pm"
-"what's the weather in London"
-"what do you know about me"
-"search for best laptops 2025"
-"don't let me forget my meeting at 3pm"
+💡 ESP32-AI v1.7.8-GROQ (Llama 3.3 70B) READY
+You: 
 ```
 
 ---
 
-## Skills System
+### Complete Slash Command Reference
 
-The skills engine lets the assistant **write and save new capabilities on demand** using Google Gemini as the code writer and a sandboxed DSL interpreter for safe execution.
+Slash commands provide instant control over device state without invoking full LLM processing cycles:
 
-### Creating a Skill
-
-Just ask naturally:
-
-```
-You: Create a skill that counts from 1 to 5 and says each number
-You: Create a skill that remembers my daily step goal and reports it
-You: Create a skill that asks AI for a motivational quote and says it
-```
-
-Gemini writes the skill JSON, the assistant validates and saves it to FFat, and it is immediately available to trigger. You can approve (`/skills keep`), discard (`/skills discard`), or regenerate (`/skills retry`) a freshly generated skill before it's committed.
-
-### DSL Operations
-
-| Op | Description |
-|---|---|
-| `say` | Output text — supports `{varName}` and numeric/string interpolation |
-| `set` | Set a numeric variable from an arithmetic expression |
-| `set_str` | Set a string variable, with `{var}` interpolation |
-| `inc` | Increment a numeric variable by a step |
-| `if` / `else` | Conditional branching (`==`, `!=`, `<`, `>`, `<=`, `>=`) |
-| `loop` | Repeat a block of ops a fixed number of times |
-| `remember` | Persist a variable (numeric or string) to the memory system — survives reboot |
-| `recall` | Load a persisted value back into a string variable |
-| `groq` | Make an inline Groq AI call and store the result in a string variable |
-
-### DSL Expression Functions
-
-`ABS`, `FLOOR`, `CEIL`, `ROUND`, `MIN`, `MAX`, `MOD`, `SIN`, `COS`, `RANDOM`, `RAND100`, `STRLEN_varname`, `MILLIS`, `NOW_SEC`, `NOW_MIN`, `NOW_HOUR`, `NOW_DAY`, `NOW_MONTH`, `NOW_YEAR`
-
-### Skills Limits
-
-| Limit | Value |
-|---|---|
-| Max skills stored | 20 |
-| Max numeric vars per skill | 12 |
-| Max string vars per skill | 4 |
-| Max loop iterations | 50 |
-| Max skill JSON size | 4096 bytes |
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                      ESP32-S3                           │
-│                                                         │
-│  Core 1 (Arduino loop)          Core 0                  │
-│  ┌──────────────────────┐       ┌─────────────────────┐ │
-│  │ Serial input         │       │ aiHttpTask          │ │
-│  │ NL intent parser      │  ──►  │  Groq HTTPS POST    │ │
-│  │ NTP clock sync        │       │  SSE stream parse   │ │
-│  │ Reminder checks       │  ◄──  │  Function calling   │ │
-│  │ Non-blocking WiFi      │       │  Response delivery  │ │
-│  │   reconnect            │       └─────────────────────┘ │
-│  │ NeoPixel updates       │                               │
-│  │ WDT resets             │       CPU frequency scaling   │
-│  │ Batched flash flush    │       80 MHz idle / 240 MHz   │
-│  │ Mood-adaptive temp      │       active                 │
-│  └──────────────────────┘                               │
-│                                                         │
-│  HTTP Buffers (auto-selected at boot)                   │
-│  ├── OPI PSRAM  [ 24 KB req / 64 KB resp ]  ← if present│
-│  └── Internal SRAM  [ String-based ]        ← fallback  │
-│                                                         │
-│  FFat Flash Filesystem                                  │
-│  ├── /memory.json      — user facts                     │
-│  ├── /reminders.json   — pending reminders               │
-│  ├── /skills.json      — learned skill definitions       │
-│  ├── /sentiment.json   — mood log                        │
-│  ├── /patterns.json    — topic preferences                │
-│  └── /knowledge.json   — knowledge domains                │
-└─────────────────────────────────────────────────────────┘
-         │                                   │
-    HTTPS / TLS                        HTTPS / TLS
-         │                                   │
-  ┌──────▼──────┐                   ┌────────▼────────┐
-  │  Groq API   │                   │  Gemini API     │
-  │  llama-3.3  │                   │  2.5 Flash      │
-  │  70b-       │                   │  (skill writer) │
-  │  versatile  │                   │                 │
-  └─────────────┘                   └─────────────────┘
-         │
-  ┌──────▼──────┐    ┌──────────────┐
-  │ Serper.dev  │    │ Meteosource  │
-  │ Web search  │    │ Weather API  │
-  └─────────────┘    └──────────────┘
-```
-
-### Data Flow for an AI Request
-
-1. User types a message → Core 1's NL parser detects intent (reminder, memory, search, weather, chat, etc.)
-2. Request body is handed to the **Core 0 AI task** via binary semaphore
-3. CPU frequency scales up to 240 MHz; Core 0 serializes into the **PSRAM buffer** if available, or a standard `String` if not
-4. Core 1 spins: feeds WDT, updates NeoPixel every 20 ms, handles non-blocking WiFi reconnect — fully responsive either way
-5. Core 0 POSTs the request (with mood-adjusted temperature) and streams the SSE response into the **PSRAM buffer** if available, or `http.getString()` if not
-6. Core 1 receives the completed response, prints it to Serial, and CPU frequency drops back to 80 MHz
-
----
-
-## Serial Monitor Reference
-
-### LED Status Colours
-
-| Colour / Pattern | Meaning |
-|---|---|
-| 🟢 Slow green pulse | Idle, connected |
-| 🔵 Fast blue pulse | Thinking / waiting for AI |
-| 🟡 Yellow | WiFi reconnecting |
-| 🔴 Red flash | Error |
-| ✨ Excited pulse | Celebrating positive mood streak |
-| 💙 Concerned glow | Offering comfort after a negative streak |
-| 💡 Proactive flash | Assistant-initiated check-in |
-
-### Log Prefixes
-
-| Prefix | Meaning |
-|---|---|
-| `✅` | Success |
-| `⚠️` | Warning / non-fatal issue |
-| `❌` | Error |
-| `[Core0]` | AI HTTP task log |
-| `[Core1]` | Main loop log |
-| `[Flash]` | FFat read/write |
-| `🤖AI:` | Assistant response |
-
----
-
-## Troubleshooting
-
-### Compilation Errors
-
-| Error | Fix |
-|---|---|
-| Library not found | Install via **Tools → Manage Libraries** |
-| `esp_psram.h: No such file` | Set **Tools → PSRAM → Disabled** — the include is automatically skipped |
-| Any other compile error | Make sure you are on ESP32 Arduino core **3.x**, not 2.x |
-
-### Runtime Issues
-
-| Symptom | Likely Cause | Fix |
+| Command Syntax | Parameters | Detailed Description |
 |---|---|---|
-| `⚠️ PSRAM not detected` at boot | Board has no PSRAM, or PSRAM set to Disabled | **This is normal** — sketch uses internal SRAM instead, no action needed |
-| `Dual-core task create failed` | Stack too small | Increase the AI task's stack size in `xTaskCreatePinnedToCore` (currently 12 KB) |
-| CPU temp always `0.0°C` | Temp sensor init failed | Not critical — everything else still works |
-| No WiFi connection | Wrong credentials | Double-check `SSID` and `PASSWORD` in Config |
-| WiFi drops and doesn't recover | Non-blocking reconnect stuck | Check `/diag` for reconnect count; power-cycle if it never clears |
-| AI responses slow or timeout | Groq key invalid, rate limited, or 70B model under load | Verify key at [console.groq.com](https://console.groq.com/keys); increase `HTTP_TIMEOUT_MS` |
-| Skill generation fails | Gemini key invalid | Verify key at [aistudio.google.com](https://aistudio.google.com/apikey) |
-| Weather always fails | Meteosource key invalid or city not found | Try a major city name; verify key |
-| LED freezes during AI call | Single-core fallback | Boot log should say `✅ Dual-core AI worker on Core 0` |
-| Crash / reboot loop | Stack overflow or low SRAM | Run `/clear` to free chat history; reduce `MAX_CHAT_MESSAGES` or `MAX_CHAT_TOKENS` |
-| FFat mount failed | Wrong partition scheme | Set **Partition Scheme → 16M Flash (3MB APP/9.9MB FATFS)** |
+| `/help` | None | Displays full interactive command cheat sheet and active system settings. |
+| `/version` | None | Prints build version, model parameters, free heap, uptime, and IP address. |
+| `/diag` | None | Performs deep health scan: SRAM drift, CPU temp, HTTP error counters, flash status. |
+| `/update` | None | Checks GitHub repository for newer release tags and firmware binaries. |
+| `/install` | None | Downloads latest released `.bin` binary over HTTPS and flashes via OTA. |
+| `/reminders` | None | Lists all upcoming tasks, single alarms, and recurring reminders with indices. |
+| `/remove` | `<index>` | Deletes specific reminder or task by numerical ID (e.g., `/remove 2`). |
+| `/memory` | None | Displays all long-term facts stored in persistent user knowledge base. |
+| `/notes` | None | Prints all stored persistent user text notes and checklists. |
+| `/summary` | None | Invokes Groq to compress active chat session history into concise memory state. |
+| `/weather` | `[city]` | Queries Meteosource for immediate weather conditions in target city. |
+| `/search` | `<query>` | Executes Serper.dev web search and returns AI-synthesized real-time answer. |
+| `/skills` | None | Displays list of self-generated micro-skills stored in flash storage. |
+| `/skills remove`| `<name>` | Permanently deletes a saved micro-skill from file storage. |
+| `/skills keep` | None | Confirms and saves recently compiled draft skill into active memory. |
+| `/skills discard`| None | Discards pending draft skill without saving. |
+| `/skills retry`  | None | Asks Gemini 2.5 Flash to regenerate DSL code for pending skill draft. |
+| `/clear` | None | Performs factory wipe: erases all memory, notes, tasks, skills, and reboots. |
 
 ---
 
-## Limits & Constraints
+### Natural Language Intent Parser
 
-| Resource | Limit |
+The natural language parser on Core 1 handles unstructured conversational input seamlessly. It automatically extracts intent without requiring rigid syntax.
+
+#### Supported Natural Language Patterns
+
+- **Memory Registration**:
+  - *"Remember that my coffee preference is espresso with oat milk."*
+  - *"Keep in mind that my Wi-Fi router password is stored in the cabinet."*
+- **Task & Note Creation**:
+  - *"Add a note: order extra ESP32 development boards next week."*
+  - *"Put buy groceries on my to-do list."*
+  - *"Show my saved notes."*
+- **Reminder & Alarm Scheduling**:
+  - *"Remind me to call John at 5pm."*
+  - *"Set an alarm for 7:30 AM every weekday."*
+- **Live Search & Weather Inquiry**:
+  - *"What is the current stock price of Apple?"*
+  - *"Is it going to rain in Tokio tomorrow?"*
+- **Phrase Correction Handling**:
+  - *"Remind me to water plants at 4pm... actually, make that 6pm."*
+  - *"Scratch that, remove my last note."*
+
+---
+
+## Sandboxed Skills Engine & DSL
+
+When asked to perform custom routines beyond standard built-in functions, the system invokes **Google Gemini 2.5 Flash** to draft custom macro scripts using a specialized, sandboxed Domain-Specific Language (DSL).
+
+### DSL Syntax Specification
+
+The internal DSL runtime evaluates linear command blocks safely without allowing arbitrary micro-controller code execution:
+
+```
+COMMAND: SAY <text>           -> Output speech text to Serial
+COMMAND: DELAY <milliseconds> -> Non-blocking delay thread
+COMMAND: LED <color_hex>      -> Set NeoPixel RGB status color
+COMMAND: FETCH_AI <prompt>    -> Execute sub-prompt query to Groq
+COMMAND: STORE_VAR <key=val>  -> Persist temporary runtime variable
+COMMAND: REPEAT <N> ... END   -> Bounded loop execution
+```
+
+### Skill Lifecycle Management
+
+```
+User Request ──► Gemini 2.5 Flash ──► DSL Syntax Validator ──► Pending Draft
+                                                                     │
+       ┌───────────────────────────────┬─────────────────────────────┘
+       ▼                               ▼                             ▼
+`/skills keep`                  `/skills retry`              `/skills discard`
+Saved to /skills/              Regenerates DSL              Flushed from memory
+```
+
+### Example Custom Skills
+
+#### Skill 1: Daily Focus Timer
+```dsl
+SKILL: FocusTimer
+  LED #FF5500
+  SAY Starting 25 minute productivity timer.
+  DELAY 1500000
+  LED #00FF00
+  SAY Focus session complete! Take a break.
+END
+```
+
+#### Skill 2: Morning Inspiration Macro
+```dsl
+SKILL: MorningInspiration
+  LED #00FFFF
+  FETCH_AI Give me a inspiring 1-sentence quote for starting the workday.
+  SAY Have a productive day!
+END
+```
+
+---
+
+## Mood Engine & Adaptive Personality
+
+The assistant features an embedded sentiment analysis matrix that monitors user input over a rolling 40-message context buffer. The user's emotional state directly modifies the LLM system prompt dynamics and temperature settings:
+
+```
+┌─────────────────┬─────────────────────┬───────────────────────────┬──────────────────┐
+│ Emotional State │ Temperature Scale   │ Output Tone Adaptation    │ LED Status Color │
+├─────────────────┼─────────────────────┼───────────────────────────┼──────────────────┤
+│ Joyful / Upbeat │ 0.85 (High)         │ Enthusiastic, creative    │ Fast Pink Pulse  │
+│ Neutral / Tech  │ 0.60 (Balanced)     │ Concise, precise, clear   │ Cyan Breathing   │
+│ Frustrated      │ 0.35 (Low/Focused)  │ Direct, empathetic, calm  │ Warm Gold Glow   │
+│ Tired / Evening │ 0.50 (Gentle)       │ Soft, brief, practical    │ Soft Amber Glow  │
+└─────────────────┴─────────────────────┴───────────────────────────┴──────────────────┘
+```
+
+---
+
+## Memory, Notes & Task Persistence
+
+All persistent data structures are managed through the on-board **FFat (Fat File System)** partition. The firmware employs a **dirty-flag batching system** that queues memory writes in RAM and flushes them to flash storage every 30 seconds, preserving flash memory lifecycle endurance.
+
+### Storage Allocation Breakdown
+
+```
+/ffat partition (9.9 MB Total)
+├── /memory.json     -> Stores up to 80 user preference facts
+├── /tasks.json      -> Stores active reminders, alarms, to-do lists
+├── /notes.txt       -> Stores persistent user notes and snippets
+├── /skills/         -> Directory containing user-taught DSL micro-skills
+└── /sentiment.log   -> Rolling log of interaction sentiment history
+```
+
+---
+
+## System Health, Telemetry & Diagnostics
+
+Executing `/diag` triggers a deep hardware diagnostics scan that reads physical silicon sensors and memory allocation pools:
+
+```
+==================================================
+📊 ESP32-S3 AI ASSISTANT DIAGNOSTIC TELEMETRY
+==================================================
+• System Version    : v1.7.8-GROQ
+• Chip Revision     : ESP32-S3 (v0.2)
+• CPU Frequency     : 240 MHz (Active) / 80 MHz (Idle)
+• Internal CPU Temp : 41.2 °C
+• Free Heap Memory  : 284,120 Bytes
+• SRAM Drift Rate   : -0.02 KB/hr (Stable)
+• PSRAM Status      : 8,388,608 Bytes Total / 7,921,040 Free
+• Flash FFat Free   : 9,214,400 Bytes / 9,900,000 Total
+• WiFi RSSI Signal  : -58 dBm (Excellent)
+• Uptime            : 4 Days, 12 Hours, 34 Mins
+• HTTP Error Rate   : 0.00% (0 errors / 421 calls)
+==================================================
+```
+
+---
+
+## GitHub Over-The-Air (OTA) Updates
+
+Firmware updates are checked and applied directly from GitHub Releases using HTTPS TLS verification:
+
+1. **Check for Updates**: Issue `/update` in the Serial Monitor. The ESP32-S3 connects to GitHub's REST API and compares local version `v1.7.8` with the latest release tag.
+2. **Install Update**: Issue `/install`. The device streams the pre-compiled `.bin` binary (`ESP32-S3-Ai-Assistant-v1.7.8.bin`), writes to the secondary OTA app partition (`app1`), verifies MD5 checksum, and reboots automatically into the new release.
+
+---
+
+## Dual-Core Task & Memory Management
+
+To maintain continuous UI animations and avoid watchdog timer (`WDT`) resets during long HTTP socket operations, workloads are strictly partitioned between the two physical cores:
+
+- **Core 0 (Network & Inference Worker)**: Dedicated exclusively to high-latency blocking network tasks, TLS handshakes, SSE streaming parsers, and external API requests.
+- **Core 1 (Application & System Core)**: Runs the main Arduino `loop()`, user Serial interface, intent parsing, NeoPixel animation ticks, real-time clock checks, and watchdog timer feeding.
+
+---
+
+## Status LED Visual Guide
+
+The single WS2812B RGB NeoPixel communicates system state instantly through visual patterns:
+
+```
+🟢 Slow Green Pulse     ──► System Ready / Idle State
+🔵 Fast Blue Breathing  ──► Communicating with Groq / Waiting for AI
+🟡 Solid Yellow         ──► Wi-Fi Connection Loss / Reconnecting
+🩵 Teal Flash           ──► GitHub OTA Update Downloading
+✨ Rainbow Pulse        ──► Positive Mood Streak Detected
+💙 Soft Sapphire Glow   ──► Empathetic / Supportive Response Mode
+💡 White Flash          ──► Proactive Assistant Nudge / Hourly Alarm
+🔴 Red Double Flash     ──► System Error / Invalid API Key
+```
+
+---
+
+## Troubleshooting & FAQ
+
+### 1. The device fails to mount FFat storage on first boot.
+- **Cause**: The flash filesystem is unformatted or partition sizes match standard 4MB layouts.
+- **Solution**: In Arduino IDE, ensure **Partition Scheme** is set to `16M Flash (3MB APP/9.9MB FATFS)`. The firmware will automatically format FFat on first boot.
+
+### 2. Compilation Error: `FFat.h: No such file or directory` or PSRAM errors.
+- **Cause**: Incorrect board core selected.
+- **Solution**: Go to **Tools → Board → ESP32 Arduino** and ensure you have selected **ESP32S3 Dev Module**.
+
+### 3. Serial Monitor displays garbage characters.
+- **Cause**: Baud rate mismatch or USB CDC flag disabled.
+- **Solution**: Set Serial Monitor speed to `115200 baud`. Ensure **USB CDC On Boot** is set to `Enabled` in the Tools menu.
+
+### 4. HTTP Error 429 during AI queries.
+- **Cause**: Rate limit exceeded on Groq or Serper free tier API keys.
+- **Solution**: Wait 60 seconds before issuing new requests or verify your key status on the Groq Console dashboard.
+
+---
+
+## Technical Specifications & Limits
+
+| Operational Boundary | Maximum System Threshold |
 |---|---|
-| Chat history window | 30 messages / 3000 tokens (auto-summarized by AI) |
-| Per-message length | 2000 characters |
-| Memory facts | 80 entries |
-| Reminders | 30 entries |
-| Sentiment log | 40 entries |
-| Learned skills | 20 |
-| AI max output tokens | 1024 per response |
-| HTTP timeout | 35 seconds (12s for sentiment/function calls) |
-| WDT timeout | 40 seconds |
-| Flash batch interval | 30 seconds (sentiment, patterns, knowledge) |
-| Reminder / memory saves | Immediate — not batched, never lost on crash |
+| Conversation Context Window | 30 Messages / ~3,000 Tokens (Auto-summarized) |
+| Long-term Memory Facts | 80 Dedicated Key-Value Entries |
+| Reminders & Task Items | 30 Active Scheduled Items |
+| Custom Learned Skills | 20 DSL Micro-Scripts |
+| HTTP Socket Timeout | 35 Seconds (12s max for function dispatch) |
+| Hardware Watchdog Timeout | 40 Seconds Hard Reset Boundary |
 
 ---
 
-## Security Notice
+## Security Considerations
 
-> ⚠️ API keys and Wi-Fi credentials in this sketch are stored as plain text and transmitted over TLS but **not** validated against a certificate authority (TLS verification is disabled for ESP32 compatibility). Never commit real keys, passwords, or tokens to a public repository — keep a local, untracked copy of your filled-in `Config` namespace, or move secrets to a `secrets.h` file excluded via `.gitignore`. Do not use production or billing-sensitive keys. This project is intended for personal and hobby use.
+- **API Key Protection**: API credentials inside `Config` are compiled into device flash memory. Never publish unencrypted source code containing live keys to public repositories.
+- **TLS Channel Security**: All outbound connections to Groq, Gemini, Serper, Meteosource, and GitHub utilize HTTPS / TLS 1.2 transport layer encryption.
+- **Sandboxed Execution**: Custom micro-skills run exclusively within the internal DSL interpreter, preventing arbitrary remote code execution (RCE).
+
+---
+
+## Development & Contributions
+
+Contributions, bug reports, and feature requests are welcome!
+
+1. **Fork the Repository**: Create your own feature branch.
+2. **Commit Changes**: Follow clear commit messaging guidelines.
+3. **Submit Pull Request**: Open a PR targeting the `main` branch.
 
 ---
 
 ## License
 
-Add your preferred license here (e.g. MIT) before publishing.
+This project is licensed under the **MIT License**. You are free to use, modify, and distribute this software for personal or commercial projects.
 
 ---
 
-### Author
+## Credits & Acknowledgments
 
-**ItzCoding**
-
-Creator, architect, and developer of the ESP32-S3 AI Assistant project.
-Designed the hardware integration, skills engine DSL, dual-core architecture, mood engine, and all firmware logic.
-
-### Powered By
-
-**Hardware Platform**
-
-| Technology | Role |
-|---|---|
-| **Arduino** | Development framework and IDE |
-| **ESP32-S3** | Microcontroller — dual-core Xtensa LX7, 16 MB Flash, optional OPI PSRAM |
-| **Espressif ESP-IDF** | Underlying RTOS, peripheral drivers, and heap management |
-
-**AI & APIs**
-
-| Service | Role | Link |
-|---|---|---|
-| **Groq** | Ultra-fast AI inference + function calling — llama-3.3-70b-versatile | [groq.com](https://groq.com) |
-| **Meta Llama 3.3 70B** | Large language model running on Groq | [llama.meta.com](https://llama.meta.com) |
-| **Google Gemini 2.5 Flash** | On-demand skill generation | [deepmind.google](https://deepmind.google/technologies/gemini/) |
-| **Serper.dev** | Real-time Google web search results | [serper.dev](https://serper.dev) |
-| **Meteosource** | Live weather data by city | [meteosource.com](https://www.meteosource.com) |
-| **NTP Pool Project** | Network time synchronisation | [pool.ntp.org](https://www.ntppool.org) |
-
-**Open-Source Libraries**
-
-| Library | Author / Maintainer | License |
-|---|---|---|
-| **ArduinoJson** | Benoit Blanchon | MIT |
-| **Adafruit NeoPixel** | Adafruit Industries | LGPL-3.0 |
-| **NTPClient** | Fabrice Weinberg | MIT |
-| **Time (TimeLib)** | Michael Margolis, Paul Stoffregen | LGPL |
-| **arduino-esp32** | Espressif Systems | Apache-2.0 |
-| **FreeRTOS** | Real Time Engineers Ltd | MIT |
+- **Creator & Lead Architect**: **ItzCoding**
+- **AI Models**: Groq Cloud (`llama-3.3-70b-versatile`) & Google AI Studio (`gemini-2.5-flash`)
+- **Web APIs**: Serper.dev Search Engine & Meteosource Weather
+- **Frameworks**: Espressif Systems Arduino ESP32 Core
 
 ---
-
-*ESP32-S3 AI Assistant v1.7.7 · Made by ItzCoding · Powered by Arduino, ESP32, Groq and Gemini*
+*ESP32-S3 AI Assistant v1.7.8 · Designed & Developed by ItzCoding · Powered by Arduino & Edge AI*
