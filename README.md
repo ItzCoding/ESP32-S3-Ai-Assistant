@@ -81,18 +81,18 @@ The ESP32-S3 AI Assistant is engineered specifically for high-efficiency embedde
 │  Memory Allocator (Dynamic PSRAM / Internal SRAM Fallback)                  │
 │  FFat Flash Filesystem (/memory, /tasks, /notes, /skills, /logs)            │
 └─────────────────────────────────────────────────────────────────────────────┘
-                                  │                         │
-                             TLS 1.2 / HTTPS           TLS 1.2 / HTTPS
-                                  │                         │
-              ┌───────────────────┴─────┐                 ┌───┴───────────────────┐
-              │     Groq Cloud API      │                 │    Google Gemini API  │
-              │ llama-3.3-70b-versatile │                 │     Gemini 2.5 Flash  │
-              └────────────┌────────────┘                 └───────────────────────┘
-                          │                                         │
-               ┌───────────┴───────────┐                  ┌───────────┴───────────┐
-               │      Serper.dev       │                  │   Meteosource API     │
-               │    Google Search      │                  │    Live Weather       │
-               └───────────────────────┘                  └───────────────────────┘
+                │                                          │
+         TLS 1.2 / HTTPS                            TLS 1.2 / HTTPS
+                │                                          │
+   ┌─────────────────────────┐                 ┌───────────────────────┐
+   │     Groq Cloud API      │                 │    Google Gemini API  │
+   │ llama-3.3-70b-versatile │                 │     Gemini 2.5 Flash  │
+   └────────────┌────────────┘                 └───────────────────────┘
+                │                                          │
+    ┌───────────┴───────────┐                  ┌───────────┴───────────┐
+    │      Serper.dev       │                  │   Meteosource API     │
+    │    Google Search      │                  │    Live Weather       │
+    └───────────────────────┘                  └───────────────────────┘
 ```
 
 ---
