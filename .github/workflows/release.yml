@@ -69,7 +69,7 @@ jobs:
         run: |
           PACKAGE_NAME="ESP32-S3-AI-Assistant-v${FIRMWARE_VERSION}"
           mkdir -p "package/$PACKAGE_NAME"
-          cp -R "$SOURCE_DIR/." "package/$PACKAGE_NAME/"
+          rsync -a --exclude='build/' "$SOURCE_DIR/" "package/$PACKAGE_NAME/"
           cp "ESP32-S3-AI-Assistant-v${FIRMWARE_VERSION}.bin" "package/$PACKAGE_NAME/"
           cp README.md LICENSE RELEASE_NOTES.md package/
           mkdir -p package/.github/workflows
