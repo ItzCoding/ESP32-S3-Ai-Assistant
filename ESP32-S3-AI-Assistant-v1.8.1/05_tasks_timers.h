@@ -16,16 +16,22 @@ static void tmrNtpCB(TimerHandle_t)       { g_flagNtpSync   = true; }
 static void tmrProactiveCB(TimerHandle_t) { g_flagProactive = true; }
 static void tmrHeapSnapCB(TimerHandle_t)  { g_flagHeapSnap  = true; }
 
-static void tmrBriefingCB(TimerHandle_t) {
+static void tmrBriefingCB(TimerHandle_t) { g_flagBriefingCheck = true; }
+
+static void checkDailyBriefings() {
+  if (timeStatus() == timeNotSet) return;
+  static int lastDate = -1;
+  int today = year() * 10000 + month() * 100 + day();
+  if (today != lastDate) {
+    morningBriefingGiven = false;
+    eveningSummaryGiven = false;
+    lastDate = today;
+  }
   int h = hour(), m = minute();
-  // morning briefing gate
   if (autoMorningBriefing() && h == 7 && m == 30 && !morningBriefingGiven)
     g_flagMorning = true;
-  // evening summary gate
   if (h == 20 && m == 0 && !eveningSummaryGiven)
     g_flagEvening = true;
-  // midnight reset
-  if (h == 0) { morningBriefingGiven = false; eveningSummaryGiven = false; }
 }
 
 // ── Background OTA check task (deletes itself when done) ──
@@ -68,8 +74,7 @@ void doWifiReconnect() {
     if (g_wifiReconnecting) {
       g_wifiReconnecting = false;
       Serial.println("✅ WiFi reconnected — " + WiFi.localIP().toString());
-      timeClient.forceUpdate();
-      setTime(timeClient.getEpochTime());
+      if (timeClient.forceUpdate()) setTime(timeClient.getEpochTime());
     }
   }
 }

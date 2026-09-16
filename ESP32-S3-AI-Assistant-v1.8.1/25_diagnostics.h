@@ -31,7 +31,9 @@ void systemDiagnostics() {
 
   Serial.println("\n📊 ═══ SYSTEM DIAGNOSTICS ═══");
   Serial.printf("  Version:     %s\n", Config::VERSION);
-  Serial.printf("  Model:       %s\n", Config::AI_MODEL);
+  Serial.printf("  AI model:    %s mode; last primary %s\n",
+                g_modelMode==MODEL_FAST?"fast":g_modelMode==MODEL_SMART?"smart":"automatic",
+                g_lastSelectedModel.c_str());
   Serial.printf("  Uptime:      %lu s  (%lu h %lu m)\n", uptimeSec, uptimeSec/3600, (uptimeSec%3600)/60);
   if (cpuTemp < 0)
     Serial.println("  CPU Temp:    unavailable on this board/core");
@@ -64,6 +66,8 @@ void systemDiagnostics() {
   Serial.printf("  Memory facts:%d / %d\n", (int)memory.size(), Config::MAX_MEMORY_FACTS);
   Serial.printf("  Chat msgs:   %d / %d\n", (int)chatHistory.size(), effectiveChatMessageLimit());
   Serial.printf("  Skills:      %d / %d\n", (int)skillNames.size(), Config::MAX_SKILLS);
+  Serial.printf("  Open tasks:  %d\n", (int)std::count_if(tasks.begin(), tasks.end(),
+    [](const TaskItem& t){ return !t.completed; }));
   KnowledgeArea* dom = getDominantKnowledge();
   if (dom) Serial.printf("  Top domain:  %s  (XP:%d  conf:%.0f%%)\n",
                          dom->domain.c_str(), dom->experiencePoints, dom->confidenceLevel*100);
@@ -108,68 +112,47 @@ void systemDiagnostics() {
 }
 
 void clearAll() {
-  memory.clear(); chatHistory.clear(); reminders.clear();
+  memory.clear(); chatHistory.clear(); reminders.clear(); tasks.clear(); g_searchCache.clear();
+  g_apiStats = ApiUsageStats(); g_nextTaskId = 1;
   sentimentHistory.clear(); userPattern = UserPattern(); knowledgeDomains.clear();
   const char* files[] = {
     "/memory.json","/chat.json","/reminders.json",
-    "/pattern.json","/sentiment.json","/knowledge.json","/skills.json", nullptr
+    "/pattern.json","/sentiment.json","/knowledge.json","/skills.json",
+    "/tasks.json","/api_stats.json","/search_cache.json", nullptr
   };
-  for (int i = 0; files[i]; i++) FFat.remove(files[i]);
+  for (int i = 0; files[i]; i++) {
+    FFat.remove(files[i]);
+    FFat.remove(String(files[i]) + ".bak");
+    FFat.remove(String(files[i]) + ".tmp");
+  }
   aiState = AI_IDLE;
   Serial.println("✅ All data cleared. Restarting...");
   delay(1000); ESP.restart();
 }
 
 void printHelp() {
-  Serial.println("\n📖 ═══ " + String(Config::VERSION) + " HELP ═══");
-  Serial.println("Commands:");
-  Serial.println("  /help             — This help screen");
-  Serial.println("  /version          — Version + stats");
-  Serial.println("  /diag             — Full diagnostics + AI health scan");
-  Serial.println("  /reminders        — List all reminders");
-  Serial.println("  /remove N         — Delete reminder N");
-  Serial.println("  /memory           — Show all stored facts");
-  Serial.println("  /summary          — AI-compress conversation history");
-  Serial.println("  /weather [city]   — Live weather (uses stored city if omitted)");
-  Serial.println("  /search [query]   — Web search + AI summary");
-  Serial.println("  /clear            — Wipe all data & restart");
-  Serial.println("  /skills           — List self-taught skills");
-  Serial.println("  /skills remove [name] — Forget a skill");
-  Serial.println("  /skills keep      — Save pending skill");
-  Serial.println("  /skills discard   — Discard pending skill");
-  Serial.println("  /skills retry     — Regenerate pending skill");
-  Serial.println("  /update           — Check GitHub for newer firmware");
-  Serial.println("  /install          — Download & flash update, then restart");
-  Serial.println("  /time             — Show current date & time");
-  Serial.println("  /timer [duration] — Start/status a local countdown");
-  Serial.println("  /timer [pause|resume|cancel]");
-  Serial.println("  /stopwatch [start|stop|reset] — Local stopwatch");
-  Serial.println("  /stopwatch lap    — Record a lap");
-  Serial.println("  /tasks            — List saved tasks");
-  Serial.println("  /task add [text]  — Add a task");
-  Serial.println("  /done N           — Complete task N");
-  Serial.println("  /forget [key]     — Delete a stored fact (see /memory)");
-  Serial.println("  /wifi [ssid] [pw] — Change WiFi at runtime (SSID may contain spaces)");
-  Serial.println("  /keys             — Show/set API keys without reflashing");
-  Serial.println("  /reboot           — Flush all settings & restart");
-  Serial.println("\nv1.8.0 NEW: /time · /forget · /wifi · /reboot · reset-reason boot log");
-  Serial.println("\nv1.7.9 NEW:");
-  Serial.println("  Multi-language    — Just write in your language; AI auto-detects");
-  Serial.println("                      and replies in Arabic, Chinese, Spanish, etc.");
-  Serial.println("  Language stored   — Tell me 'my language is French' to save it.");
-  Serial.println("  Language detected : " + g_userLanguage);
-  Serial.println("\nNatural language — say anything, any way, e.g.:");
-  Serial.println("  \"remember my name is Cash\"");
-  Serial.println("  \"remind me to take medicine at 8pm\"");
-  Serial.println("  \"what's the weather in London\"");
-  Serial.println("  \"search for best laptops 2025\"");
-  Serial.println("  \"مرحبا\" / \"你好\" / \"Hola\" — replies in your language");
-  Serial.println("═══════════════════════════════════════════");
+  Serial.println("\n📖 Talk naturally — slash commands are optional");
+  Serial.println("Try saying:");
+  Serial.println("  Remind me to call Sam tomorrow at 6 PM");
+  Serial.println("  Snooze that reminder for 15 minutes");
+  Serial.println("  Add a high priority task to submit the report by Friday");
+  Serial.println("  Rename task 2 to send the final report");
+  Serial.println("  Move reminder 1 to Friday at 9 AM");
+  Serial.println("  Remember my hotel is Ocean View for 3 days");
+  Serial.println("  Use the fast model / Choose the model automatically");
+  Serial.println("  What's the latest ESP32 news?");
+  Serial.println("  Show my API usage statistics");
+  Serial.println("  Check for firmware updates / Install the update");
+  Serial.println("  Remember my city is Colombo / What's the weather?");
+  Serial.println("Maintenance shortcuts: /health, /save, /keys, /clear, /reboot");
+  Serial.println("Language detected: " + g_userLanguage);
 }
 
 void printVersion() {
   Serial.println("\n" + String(Config::VERSION));
-  Serial.println("Model:     " + String(Config::AI_MODEL));
+  const char* modelMode=g_modelMode==MODEL_FAST?"fast":g_modelMode==MODEL_SMART?"smart":"automatic";
+  Serial.println("Models:    " + String(modelMode) + "; last primary " + g_lastSelectedModel);
+  Serial.println("Cache:     " + String(g_searchCache.size()) + " search result(s)");
   Serial.println("Language:  " + g_userLanguage);                          // v1.7.9
   Serial.println("CPU freq:  " + String(getCpuFrequencyMhz()) + " MHz");
   Serial.println("Mood temp: " + String(computeMoodTemperature(), 2));

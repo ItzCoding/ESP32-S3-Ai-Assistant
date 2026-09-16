@@ -37,7 +37,7 @@ String extractKeywords(String phrase) {
 void rebuildSkillTriggerIndex() {
   skillTriggerIndex.clear();
   for (size_t i = 0; i < skillJson.size(); i++) {
-    JsonDocument doc; if (deserializeJson(doc, skillJson[i])) continue;
+    JsonDocument doc(&g_jsonAllocator); if (deserializeJson(doc, skillJson[i])) continue;
     for (JsonPair kv : doc["triggers"].as<JsonObject>()) {
       for (JsonVariant p : kv.value().as<JsonArray>()) {
         String phrase = p.as<String>(); phrase.toLowerCase();
@@ -320,7 +320,7 @@ void executeSkillOps(JsonArrayConst ops, JsonObject vars, JsonObject strvars) {
 
 void runSkillAction(int skillIdx, const String& actionName) {
   if (skillIdx < 0 || skillIdx >= (int)skillJson.size()) return;
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   if (deserializeJson(doc, skillJson[skillIdx])) return;
 
   JsonObject vars    = doc["vars"].is<JsonObject>()    ? doc["vars"].as<JsonObject>()    : doc.createNestedObject("vars");
@@ -342,7 +342,7 @@ void listSkills() {
   if (skillNames.empty()) { Serial.println("🧠 No self-taught skills yet — just ask for something new!"); return; }
   Serial.println("\n🧠 ═══ SELF-TAUGHT SKILLS ═══");
   for (size_t i = 0; i < skillNames.size(); i++) {
-    JsonDocument doc; String desc = "";
+    JsonDocument doc(&g_jsonAllocator); String desc = "";
     if (!deserializeJson(doc, skillJson[i])) desc = doc["description"]|"";
     Serial.println("  " + String(i) + ". " + skillNames[i] + " — " + desc);
   }
@@ -361,20 +361,19 @@ void removeSkill(const String& name) {
 }
 
 void saveSkills() {
-  JsonDocument doc; JsonArray arr = doc["skills"].to<JsonArray>();
+  JsonDocument doc(&g_jsonAllocator); JsonArray arr = doc["skills"].to<JsonArray>();
   for (const auto& raw : skillJson) {
-    JsonDocument one;
+    JsonDocument one(&g_jsonAllocator);
     if (!deserializeJson(one, raw)) arr.add(one);
   }
-  File file = FFat.open("/skills.json", FILE_WRITE);
-  if (file) { serializeJson(doc, file); file.close(); }
+  g_dirtySkills = !saveStateFile("/skills.json", doc);
 }
 
 void loadSkills() {
   skillNames.clear(); skillJson.clear();
   if (!FFat.exists("/skills.json")) return;
   File file = FFat.open("/skills.json", FILE_READ); if (!file) return;
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   if (deserializeJson(doc, file)) { file.close(); return; }
   for (JsonObject s : doc["skills"].as<JsonArray>()) {
     String name = s["name"]|"unnamed";
@@ -519,7 +518,7 @@ String skillModelGenerate(const String& request, const String& previousSkillJson
     userPrompt += "IMPORTANT CONTEXT — Skills already loaded on this device:\n";
     for (size_t _si = 0; _si < skillNames.size() && _si < 8; _si++) {
       userPrompt += "  • '" + skillNames[_si] + "'";
-      JsonDocument _existDoc;
+      JsonDocument _existDoc(&g_jsonAllocator);
       if (!deserializeJson(_existDoc, skillJson[_si])) {
         const char* _desc = _existDoc["description"] | "";
         if (strlen(_desc) > 0) userPrompt += " — " + String(_desc);
@@ -551,7 +550,7 @@ String skillModelGenerate(const String& request, const String& previousSkillJson
 
   // OpenRouter uses the same OpenAI-compatible messages/choices schema as the
   // main chat engine (v1.8.0: replaces the old Gemini generateContent schema).
-  JsonDocument reqDoc;
+  JsonDocument reqDoc(&g_jsonAllocator);
   reqDoc["model"]                  = Config::SKILL_MODEL;
   reqDoc["reasoning"]["enabled"] = false;   // v1.8.0: no chain-of-thought — save tokens
   reqDoc["messages"][0]["role"]    = "system";
@@ -572,7 +571,7 @@ String skillModelGenerate(const String& request, const String& previousSkillJson
     return "";
   }
 
-  JsonDocument resp;
+  JsonDocument resp(&g_jsonAllocator);
   DeserializationError parseErr = deserializeJson(resp, respRaw);
   if (parseErr) {
     Serial.println("⚠️  Skill generation: unparseable response (" +
@@ -671,7 +670,7 @@ void learnNewSkill(const String& request) {
 }
 
 void beginSkillTest(const String& request, const String& candidateJson) {
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   if (deserializeJson(doc, candidateJson)) {
     Serial.println("❌ Generated skill JSON is invalid — can't test it.");
     aiState = AI_ERROR; blinkCount = 0; lastBlink = millis(); return;

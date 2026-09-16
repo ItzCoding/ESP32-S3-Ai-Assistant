@@ -15,7 +15,9 @@ namespace Config {
   // ── OpenRouter API (main AI) ────────────────────────
   constexpr const char* AI_KEY      = "YOUR_OPENROUTER_API_KEY";
   constexpr const char* AI_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
-  constexpr const char* AI_MODEL    = "nvidia/nemotron-3.5-lightning:free"; 
+  constexpr const char* AI_MODEL    = "nvidia/nemotron-3.5-lightning:free";
+  constexpr const char* AI_COMPLEX_MODEL  = "minimax/minimax-m3:free";
+  constexpr const char* AI_FALLBACK_MODEL = "openrouter/free";
 
   // Weather and Web Search
   constexpr const char* WEATHER_KEY    = "YOUR_METEOSOURCE_API_KEY";
@@ -53,6 +55,9 @@ namespace Config {
   constexpr float  AI_TEMPERATURE  = 0.70f;   // default; overridden by mood engine
   constexpr int    AI_MAX_TOKENS   = 1024;    // was 600
   constexpr int    AI_MAX_RETRIES  = 3;
+  constexpr unsigned long SEARCH_CACHE_RECENT_MS  = 15UL * 60UL * 1000UL;
+  constexpr unsigned long SEARCH_CACHE_GENERAL_MS = 6UL * 60UL * 60UL * 1000UL;
+  constexpr int    MAX_SEARCH_CACHE = 8;
 
   // LED
   constexpr float  LED_MAX_BRIGHTNESS = 0.25f;
@@ -71,7 +76,7 @@ namespace Config {
   constexpr int      WDT_TIMEOUT_S   = 40;     // was 30; 70B needs more time
 
   // ── Self-taught Skills Engine (OpenRouter) ──────────
-  constexpr const char* SKILL_KEY      = "YOUR_OPENROUTER_SKILL_API_KEY";
+  constexpr const char* SKILL_KEY      = "YOUR_OPENROUTER_SKILL_API_KEY"; // may use the same OpenRouter account
   constexpr const char* SKILL_MODEL    = "minimax/minimax-m3:free";             // skill builder (free tier)
   constexpr const char* SKILL_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
   constexpr int    MAX_SKILLS             = 20;
@@ -94,9 +99,9 @@ namespace Config {
   constexpr const char* OTA_GITHUB_REPO      = "ESP32-S3-Ai-Assistant";
   constexpr const char* OTA_API_URL          =
     "https://api.github.com/repos/ItzCoding/ESP32-S3-Ai-Assistant/releases/latest";
-  constexpr const char* FIRMWARE_VERSION     = "1.8.0";
+  constexpr const char* FIRMWARE_VERSION     = "1.8.1";
   constexpr int         OTA_CHECK_TIMEOUT_MS = 12000;
 
-  constexpr const char* VERSION = "ESP32-AI v1.8.0 (OpenRouter: Nemotron 3.5 Lightning + MiniMax M3 skills, modular)";
+  constexpr const char* VERSION = "ESP32-AI v1.8.1 (automatic multi-model routing, modular)";
 }
 

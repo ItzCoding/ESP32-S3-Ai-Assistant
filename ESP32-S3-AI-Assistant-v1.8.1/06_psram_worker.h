@@ -56,6 +56,8 @@ void loadRuntimeSettings() {
   g_weatherKey   = g_preferences.getString("weather_key", Config::WEATHER_KEY);
   g_serperKey    = g_preferences.getString("serper_key", Config::SERPER_API_KEY);
   g_skillKey    = g_preferences.getString("gemini_key", Config::SKILL_KEY);
+  g_modelMode   = (ModelMode)constrain(g_preferences.getUChar("model_mode", MODEL_AUTO),
+                                      (uint8_t)MODEL_AUTO, (uint8_t)MODEL_SMART);
   customApiKey   = g_aiKey;
 
   // Accept both the current marker and the legacy marker written by the
@@ -149,6 +151,7 @@ static void aiHttpTask(void* param) {
 
 static String dcPost(const String& url, const String& authBearer,
                      const String& body, int timeoutMs, bool doStream, bool printTokens) {
+  const unsigned long apiStarted = millis();
   if (!g_dcTask) {
     // Fallback: single-core
     WiFiClientSecure secClient; secClient.setInsecure();
@@ -165,6 +168,8 @@ static String dcPost(const String& url, const String& authBearer,
       Serial.printf("⚠️  API request failed (HTTP %d)\n", code);
     }
     http.end();
+    recordApiUsage("ai", code >= 200 && code < 300 && result.length() > 0,
+                   millis() - apiStarted, body.length(), result.length());
     return result;
   }
 
@@ -189,6 +194,8 @@ static String dcPost(const String& url, const String& authBearer,
   const unsigned long waitMs = (unsigned long)timeoutMs + 10000UL;
   while (xSemaphoreTake(g_dcRespSem, pdMS_TO_TICKS(250)) != pdTRUE) {
     esp_task_wdt_reset();
+    processLocalTimer();
+    processReminders();
     // v1.7.9 FIX: removed updateLED() call here — the dedicated ledTask (Core 1)
     // owns all strip.show() calls. Calling it from the main loop too causes a
     // race condition on the NeoPixel bus that can crash the ESP32.
@@ -197,13 +204,16 @@ static String dcPost(const String& url, const String& authBearer,
       // The worker still owns the global request/response objects. Keep it
       // marked busy so a later call cannot overwrite live data.
       Serial.println("❌ AI request timed out");
+      recordApiUsage("ai", false, millis() - apiStarted, body.length(), 0);
       return "";
     }
   }
   if (!g_dcResp.ok) {
     Serial.printf("⚠️  API request failed (HTTP %d)\n", g_dcResp.httpCode);
+    recordApiUsage("ai", false, millis() - apiStarted, body.length(), 0);
     return "";
   }
+  recordApiUsage("ai", true, millis() - apiStarted, body.length(), g_dcResp.reply.length());
   return g_dcResp.reply;
 }
 

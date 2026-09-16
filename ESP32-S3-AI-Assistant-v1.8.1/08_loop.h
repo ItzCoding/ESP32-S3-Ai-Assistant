@@ -21,7 +21,10 @@ void loop() {
   }
   if (g_flagNtpSync) {
     g_flagNtpSync = false;
-    if (timeClient.update()) setTime(timeClient.getEpochTime());
+    if (WiFi.status() == WL_CONNECTED && timeClient.update()) {
+      setTime(timeClient.getEpochTime());
+      purgeExpiredMemories(false);
+    }
   }
   if (g_flagHeapSnap) {
     g_flagHeapSnap   = false;
@@ -35,6 +38,10 @@ void loop() {
   if (g_flagFlush) {
     g_flagFlush = false;
     flushDirtyState();
+  }
+  if (g_flagBriefingCheck) {
+    g_flagBriefingCheck = false;
+    checkDailyBriefings();
   }
   if (g_flagMorning) {
     g_flagMorning        = false;
@@ -88,7 +95,7 @@ void loop() {
     String* pending = nullptr;
     if (g_inputQueue && xQueueReceive(g_inputQueue, &pending, 0) == pdTRUE && pending) {
       pending->trim();
-      if (pending->length() > 0) handleInput(*pending);
+      if (pending->length() > 0) { handleInput(*pending); consolePrompt(); }
       delete pending;
     }
   }

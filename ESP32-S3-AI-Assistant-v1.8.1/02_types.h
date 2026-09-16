@@ -16,12 +16,51 @@ struct Reminder {
   RecurrenceType recurrence;
   bool          triggered;
   uint32_t      triggerCount;
+  // Absolute due time for dated/relative one-shot reminders. Zero keeps
+  // compatibility with older clock-only reminder records.
+  uint32_t      dueAt = 0;
+  uint32_t      lastTriggeredAt = 0;
+};
+
+enum TaskPriority : uint8_t { TASK_LOW = 0, TASK_NORMAL, TASK_HIGH, TASK_URGENT };
+
+struct TaskItem {
+  uint32_t id = 0;
+  String title;
+  String category;
+  TaskPriority priority = TASK_NORMAL;
+  uint32_t dueAt = 0;
+  uint32_t createdAt = 0;
+  uint32_t completedAt = 0;
+  bool completed = false;
+};
+
+struct ApiUsageStats {
+  uint32_t aiRequests = 0, aiFailures = 0;
+  uint32_t searchRequests = 0, searchFailures = 0;
+  uint32_t weatherRequests = 0, weatherFailures = 0;
+  uint32_t otaRequests = 0, otaFailures = 0;
+  uint64_t estimatedInputTokens = 0, estimatedOutputTokens = 0;
+  uint64_t totalLatencyMs = 0;
+  uint32_t repairedResponses = 0;
+  uint32_t searchCacheHits = 0;
 };
 
 struct Fact {
   String key, value;
   uint32_t      accessCount;
   unsigned long lastAccess;
+  uint32_t      expiresAt = 0;
+};
+
+enum ModelMode : uint8_t { MODEL_AUTO = 0, MODEL_FAST, MODEL_SMART };
+
+struct SearchCacheItem {
+  String query;
+  String results;
+  uint32_t savedAt = 0;
+  unsigned long savedMillis = 0;
+  bool recency = false;
 };
 
 struct ChatMessage {

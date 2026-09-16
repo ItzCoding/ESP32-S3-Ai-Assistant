@@ -1,5 +1,5 @@
 // ╔═════════════════════════════════════════════════════════════════════════╗
-// ║               ESP32-S3-AI Assistant  v1.8.0 (modular)                   ║
+// ║               ESP32-S3-AI Assistant  v1.8.1 (modular)                   ║
 // ║  AI      : OpenRouter · Nemotron 3.5 Lightning (OpenAI-compatible)      ║
 // ║  Search  : Serper.dev        Weather : Meteosource                      ║
 // ║  Features: SSE streaming · Function calling · AI summarization          ║
@@ -10,6 +10,7 @@
 // ║  v1.8.0  : Fixed sentiment-parser crash on malformed AI reply           ║  
 // ║            coverage (short words like "stop"/"reset"/"check" required)  ║
 // ║  v1.8.0  : Switched Groq/Gemini → OpenRouter (Nemotron 3.5 + MiniMax M3)║
+// ║  v1.8.1  : Natural editing, model routing, cache, expiring memory + OTA  ║
 // ║  Consoles: https://openrouter.ai/settings/keys                          ║
 // ║  Target  : ESP32-S3 · works with OR without OPI PSRAM                   ║
 // ╠═════════════════════════════════════════════════════════════════════════╣
@@ -33,6 +34,8 @@
 #include <Adafruit_NeoPixel.h>
 #include <esp_task_wdt.h>
 #include <esp_heap_caps.h>
+#include <esp_ota_ops.h>
+#include <esp_partition.h>
 #ifdef CONFIG_SPIRAM
 #if ESP_ARDUINO_VERSION_MAJOR >= 3
 #include <esp_psram.h>
@@ -48,7 +51,7 @@ static inline size_t esp_psram_get_size(void) { return ESP.getPsramSize(); }
 
 
 // ==================================================================
-//  MODULAR CODEBASE (v1.8.0) - each section now lives in its own file.
+//  MODULAR CODEBASE (v1.8.1) - each section now lives in its own file.
 //  Edit only the module you need; the includes below MUST stay in this
 //  exact order because the modules share one translation unit.
 // ==================================================================
@@ -57,11 +60,13 @@ static inline size_t esp_psram_get_size(void) { return ESP.getPsramSize(); }
 #include "02_types.h"
 #include "03_globals.h"
 #include "04_declarations.h"
+#include "04_storage.h"
 #include "05_tasks_timers.h"
 #include "06_psram_worker.h"
 #include "07_setup.h"
 #include "08_loop.h"
 #include "09_state_flush.h"
+#include "10_smart_features.h"
 #include "10_input_handler.h"
 #include "11_conversation.h"
 #include "12_prompts.h"

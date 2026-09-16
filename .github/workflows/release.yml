@@ -1,0 +1,78 @@
+name: Build firmware and create release
+
+# Push a tag matching FIRMWARE_VERSION (for example v1.8.1) to publish OTA.
+# A manual run builds and saves an artifact but does not create a release.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_DIR: ESP32-S3-AI-Assistant-v1.8.1
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Read and verify firmware version
+        shell: bash
+        run: |
+          VERSION=$(sed -n 's/.*FIRMWARE_VERSION[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$SOURCE_DIR/01_config.h" | head -n1)
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not read FIRMWARE_VERSION from 01_config.h"
+            exit 1
+          fi
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match FIRMWARE_VERSION v$VERSION"
+            exit 1
+          fi
+          echo "FIRMWARE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh
+          arduino-cli version
+
+      - name: Install ESP32 core and libraries
+        run: |
+          URL=https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index --additional-urls "$URL"
+          arduino-cli core install esp32:esp32@3.3.11 --additional-urls "$URL"
+          arduino-cli lib install "ArduinoJson@7.4.3" "NTPClient@3.2.1" "Time@1.6.1" "Adafruit NeoPixel@1.15.5"
+
+      - name: Build ESP32-S3 OTA firmware
+        run: |
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32s3:FlashSize=16M,PSRAM=opi,PartitionScheme=app3M_fat9M_16MB,USBMode=hwcdc,CDCOnBoot=cdc \
+            --warnings default \
+            --output-dir build "$SOURCE_DIR"
+
+      - name: Select application firmware binary
+        shell: bash
+        run: |
+          APP_BIN=$(find build -maxdepth 1 -type f -name '*.ino.bin' -print -quit)
+          if [ -z "$APP_BIN" ]; then
+            echo "::error::Application .ino.bin was not produced"
+            find build -maxdepth 1 -type f -print
+            exit 1
+          fi
+          cp "$APP_BIN" "ESP32-S3-AI-Assistant-v${FIRMWARE_VERSION}.bin"
+          ls -lh ESP32-S3-AI-Assistant-v*.bin
+
+      - name: Save workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ESP32-S3-AI-Assistant-v${{ env.FIRMWARE_VERSION }}
+          path: ESP32-S3-AI-Assistant-v${{ env.FIRMWARE_VERSION }}.bin
+
+      - name: Create GitHub release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ESP32-S3-AI-Assistant-v${{ env.FIRMWARE_VERSION }}.bin
+          generate_release_notes: true

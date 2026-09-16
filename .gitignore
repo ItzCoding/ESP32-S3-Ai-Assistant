@@ -1,0 +1,16 @@
+# Local Arduino build output
+.build*/
+build/
+*.elf
+*.map
+*.hex
+
+# Local credentials and editor metadata
+credentials.h
+.vscode/
+.idea/
+.kilo/
+
+# Temporary state
+*.tmp
+*.bak

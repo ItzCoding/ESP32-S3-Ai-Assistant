@@ -97,25 +97,21 @@ void addAssistantMessage(const String& msg) {
 }
 
 void saveChatHistory() {
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   JsonArray arr = doc["history"].to<JsonArray>();
   for (const auto& m : chatHistory) {
     JsonObject o = arr.add<JsonObject>();
     o["role"] = m.role;
     o["content"] = m.content;
   }
-  File f = FFat.open("/chat.json", FILE_WRITE);
-  if (f) {
-    serializeJson(doc, f);
-    f.close();
-  }
+  g_dirtyChat = !saveStateFile("/chat.json", doc);
 }
 
 void loadChatHistory() {
   if (!FFat.exists("/chat.json")) return;
   File f = FFat.open("/chat.json", FILE_READ);
   if (!f) return;
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   if (deserializeJson(doc, f)) {
     f.close();
     return;

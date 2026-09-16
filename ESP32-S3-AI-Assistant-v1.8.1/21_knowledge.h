@@ -45,20 +45,19 @@ KnowledgeArea* getDominantKnowledge() {
 }
 
 void saveKnowledgeDomains() {
-  JsonDocument doc; JsonArray arr = doc["domains"].to<JsonArray>();
+  JsonDocument doc(&g_jsonAllocator); JsonArray arr = doc["domains"].to<JsonArray>();
   for (const auto& kd : knowledgeDomains) {
     JsonObject o = arr.add<JsonObject>();
     o["domain"] = kd.domain; o["xp"] = kd.experiencePoints; o["conf"] = kd.confidenceLevel;
     o["r"] = kd.colorR; o["g"] = kd.colorG; o["b"] = kd.colorB;
   }
-  File f = FFat.open("/knowledge.json", FILE_WRITE);
-  if (f) { serializeJson(doc, f); f.close(); }
+  g_dirtyKnowledge = !saveStateFile("/knowledge.json", doc);
 }
 
 void loadKnowledgeDomains() {
   if (!FFat.exists("/knowledge.json")) return;
   File f = FFat.open("/knowledge.json", FILE_READ); if (!f) return;
-  JsonDocument doc; if (deserializeJson(doc, f)) { f.close(); return; }
+  JsonDocument doc(&g_jsonAllocator); if (deserializeJson(doc, f)) { f.close(); return; }
   knowledgeDomains.clear();
   for (JsonObject o : doc["domains"].as<JsonArray>())
     knowledgeDomains.push_back({

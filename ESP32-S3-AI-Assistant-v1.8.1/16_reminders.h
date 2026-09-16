@@ -52,6 +52,15 @@ void addReminder(const String& msg, int h, int m, RecurrenceType recur, int dow,
   r.recurrence   = recur;
   r.triggered    = false;
   r.triggerCount = 0;
+  r.dueAt        = 0;
+  r.lastTriggeredAt = 0;
+  if (recur == ONCE && timeStatus() != timeNotSet) {
+    tmElements_t tm{};
+    tm.Year=CalendarYrToTm(year()); tm.Month=month(); tm.Day=day(); tm.Hour=h; tm.Minute=m;
+    time_t candidate=makeTime(tm);
+    if (candidate <= now()) candidate += SECS_PER_DAY;
+    r.dueAt=(uint32_t)candidate;
+  }
   reminders.push_back(r);
   g_dirtyReminders = true;
   userPattern.reminderUsage++;
@@ -63,7 +72,7 @@ void listReminders() {
   Serial.println("\n⏰ ═══ REMINDERS ═══");
   for (int i = 0; i < (int)reminders.size(); i++) {
     const Reminder& r = reminders[i];
-    Serial.println("  [" + String(i) + "] " + r.message +
+    Serial.println("  " + String(i + 1) + ". " + r.message +
                    " @ " + formatReminderTime(r.hour, r.minute) +
                    " " + getRecurrenceText(r.recurrence, r.dayOfWeek, r.dayOfMonth));
   }
@@ -77,6 +86,8 @@ void removeReminder(int index) {
 }
 
 bool shouldReminderTrigger(const Reminder& r) {
+  if (r.recurrence == ONCE && r.dueAt)
+    return !r.triggered && now() >= (time_t)r.dueAt;
   int nowH = hour(), nowM = minute();
   if (nowH != r.hour || nowM != r.minute) return false;
   switch (r.recurrence) {
@@ -89,14 +100,16 @@ bool shouldReminderTrigger(const Reminder& r) {
 }
 
 void processReminders() {
-  static int lastMinuteChecked = -1;
-  int nowM = minute();
-  if (nowM == lastMinuteChecked) return;
-  lastMinuteChecked = nowM;
+  if (timeStatus() == timeNotSet) return;
+  static time_t lastMinuteChecked = 0;
+  time_t currentMinute = now() / 60;
+  if (currentMinute == lastMinuteChecked) return;
+  lastMinuteChecked = currentMinute;
 
   for (int i = (int)reminders.size() - 1; i >= 0; i--) {
     Reminder& r = reminders[i];
     if (shouldReminderTrigger(r)) {
+      g_lastReminderMessage = r.message;
       Serial.println("\n🔔 ═══════════ REMINDER ═══════════");
       Serial.println("   " + r.message);
       Serial.println("   " + formatReminderTime(r.hour, r.minute) + " " +
@@ -105,6 +118,7 @@ void processReminders() {
       aiState = AI_ALERT; stateChangeTime = millis();
       r.triggered = true;
       r.triggerCount++;
+      r.lastTriggeredAt = (uint32_t)now();
       if (r.recurrence == ONCE) {
         reminders.erase(reminders.begin() + i);
       }
@@ -175,7 +189,7 @@ bool tryParseNaturalReminder(const String& message) {
 }
 
 void saveReminders() {
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   JsonArray arr = doc["reminders"].to<JsonArray>();
   for (const auto& r : reminders) {
     JsonObject o = arr.add<JsonObject>();
@@ -183,15 +197,15 @@ void saveReminders() {
     o["dow"] = r.dayOfWeek; o["dom"] = r.dayOfMonth;
     o["rec"] = (int)r.recurrence; o["triggered"] = r.triggered;
     o["count"] = r.triggerCount;
+    o["dueAt"] = r.dueAt; o["lastAt"] = r.lastTriggeredAt;
   }
-  File f = FFat.open("/reminders.json", FILE_WRITE);
-  if (f) { serializeJson(doc, f); f.close(); }
+  g_dirtyReminders = !saveStateFile("/reminders.json", doc);
 }
 
 void loadReminders() {
   if (!FFat.exists("/reminders.json")) return;
   File f = FFat.open("/reminders.json", FILE_READ); if (!f) return;
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   if (deserializeJson(doc, f)) { f.close(); return; }
   reminders.clear();
   for (JsonObject o : doc["reminders"].as<JsonArray>()) {
@@ -202,6 +216,8 @@ void loadReminders() {
     r.recurrence   = (RecurrenceType)(o["rec"] | 0);
     r.triggered    = o["triggered"] | false;
     r.triggerCount = o["count"] | 0;
+    r.dueAt        = o["dueAt"] | 0U;
+    r.lastTriggeredAt = o["lastAt"] | 0U;
     reminders.push_back(r);
   }
   f.close();

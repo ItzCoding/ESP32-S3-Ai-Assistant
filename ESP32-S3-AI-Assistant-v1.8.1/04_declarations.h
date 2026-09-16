@@ -45,6 +45,20 @@ String formatReminderTime(int hour, int minute);
 String getRecurrenceText(RecurrenceType recur, int dow, int dom);
 void   processReminders();
 void   loadReminders();  void saveReminders();
+bool   handleSmartNaturalInput(const String& input);
+void   loadTasks(); void saveTasks();
+void   loadApiStats(); void saveApiStats();
+void   loadSearchCache(); void saveSearchCache();
+void   purgeExpiredMemories(bool announce = false);
+String chooseAiModel(const String& prompt, bool simpleCall = false);
+void   applyAiModelRouting(JsonDocument& doc, const String& prompt, bool simpleCall = false);
+void   printFirmwareChangelog();
+void   consolePrompt();
+void   printApiUsageStats();
+void   migrateLegacyTasks();
+void   recordApiUsage(const char* service, bool success, uint32_t latencyMs,
+                      size_t inputChars = 0, size_t outputChars = 0);
+bool   responseNeedsRepair(const String& response);
 
 void   addUserMessage(const String& msg);
 void   addAssistantMessage(const String& msg);

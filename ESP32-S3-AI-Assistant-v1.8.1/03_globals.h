@@ -20,6 +20,16 @@ std::vector<Reminder>     reminders;
 std::vector<ChatMessage>  chatHistory;
 std::vector<SentimentLog> sentimentHistory;
 std::vector<KnowledgeArea>knowledgeDomains;
+std::vector<TaskItem>      tasks;
+static ApiUsageStats       g_apiStats;
+static uint32_t            g_nextTaskId = 1;
+static bool                g_dirtyTasks = false;
+static bool                g_dirtyApiStats = false;
+static std::vector<SearchCacheItem> g_searchCache;
+static bool                g_dirtySearchCache = false;
+static ModelMode           g_modelMode = MODEL_AUTO;
+static String              g_lastSelectedModel = Config::AI_MODEL;
+static String              g_lastReminderMessage;
 
 // ── Self-taught Skills Engine ────────────────────────
 std::vector<String> skillNames;
@@ -140,6 +150,7 @@ static bool   g_updateAvailable  = false;
 static String g_latestVersion    = "";
 static String g_latestBinUrl     = "";
 static String g_updateNotes      = "";
+static size_t g_latestBinSize    = 0;
 static bool   g_otaCheckedOnBoot = false;
 
 // ═══════════════════════════════════════════════════════
@@ -186,3 +197,5 @@ inline void serialPrintf(const char* fmt, ...) {
 }
 
 
+
+static volatile bool g_flagBriefingCheck = false;

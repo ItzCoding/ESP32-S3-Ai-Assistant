@@ -89,11 +89,13 @@ void setup() {
 
   randomSeed(esp_random());
 
-  if (!FFat.begin(true)) {
+  g_storageReady = FFat.begin(false);
+  if (!g_storageReady) {
     Serial.println("❌ FATFS mount failed — running without persistence");
-    Serial.println("   ℹ️  Ensure Tools → Partition Scheme = '16M Flash (3MB APP/9.9MB FATFS)'.");
+    Serial.println("See BOARD_SETUP.md; initialize fresh storage with /storage format CONFIRM.");
   } else {
     Serial.println("✅ FATFS ready");
+    recoverStateFiles();
     loadMemory();
     loadReminders();
     loadChatHistory();
@@ -101,6 +103,10 @@ void setup() {
     loadSentimentData();
     loadKnowledgeDomains();
     loadSkills();
+    loadTasks();
+    loadApiStats();
+    loadSearchCache();
+    migrateLegacyTasks();
   }
 
   if (knowledgeDomains.empty()) initializeKnowledgeDomains();
@@ -118,10 +124,13 @@ void setup() {
     : "\n⚠️  WiFi failed — offline mode");
 
   timeClient.begin();
-  timeClient.update();
-  setTime(timeClient.getEpochTime());
+  if (WiFi.status() == WL_CONNECTED && timeClient.update()) {
+    setTime(timeClient.getEpochTime());
+    purgeExpiredMemories(false);
+    Serial.println("Time synchronized.");
+  } else Serial.println("Clock awaiting NTP; scheduled reminders are suspended.");
   bootTime = millis();
-  Serial.println("✅ Time synced");
+  printHardwareHealth();
 
   // ── v1.7.9: Boot OTA check runs as background task ─────
   // (no longer blocks setup — spawned after LED init)
@@ -174,11 +183,21 @@ void setup() {
     if (savedLang.length() > 0) g_userLanguage = savedLang;
   }
 
+#if defined(CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE)
+  // Confirm a new image only after storage, networking, timers, and tasks have
+  // initialized. An image that crashes earlier remains eligible for rollback.
+  esp_ota_mark_app_valid_cancel_rollback();
+#endif
+
   Serial.println("\n╭────────────────────────────────────────────╮");
   Serial.println("│  🤖 ESP32 AI Assistant is ready            │");
   Serial.println("╰────────────────────────────────────────────╯");
-  Serial.println("Model: " + String(Config::AI_MODEL));
-  Serial.println("Memory: " + String(g_hasPsram ? "PSRAM profile" : "low-memory profile"));
-  Serial.println("Type naturally, or enter /help for commands.\n");
+  const char* modelMode=g_modelMode==MODEL_FAST?"FAST":g_modelMode==MODEL_SMART?"SMART":"AUTO";
+  Serial.println(" Firmware : v" + String(Config::FIRMWARE_VERSION));
+  Serial.println(" AI mode  : " + String(modelMode) + " with fallback models");
+  Serial.println(" Memory   : " + String(g_hasPsram ? "8 MB OPI PSRAM profile" : "low-memory profile"));
+  Serial.println(" Storage  : " + String(g_storageReady ? "persistent" : "RAM only"));
+  Serial.println(" Say 'help' for natural examples. Commands are optional.");
+  consolePrompt();
 }
 

@@ -67,21 +67,20 @@ void calculateThinkingComplexity(const String& message) {
 }
 
 void saveUserPattern() {
-  JsonDocument doc;
+  JsonDocument doc(&g_jsonAllocator);
   doc["total"] = userPattern.totalInteractions; doc["morning"] = userPattern.morningChats;
   doc["evening"] = userPattern.eveningChats; doc["lastTime"] = userPattern.lastInteraction;
   doc["mood"] = userPattern.recentMood; doc["tech"] = userPattern.techQuestions;
   doc["casual"] = userPattern.casualMessages; doc["remUsage"] = userPattern.reminderUsage;
   JsonArray topics = doc["topics"].to<JsonArray>();
   for (int i = 0; i < 5; i++) if (userPattern.favoriteTopics[i].length()) topics.add(userPattern.favoriteTopics[i]);
-  File f = FFat.open("/pattern.json", FILE_WRITE);
-  if (f) { serializeJson(doc, f); f.close(); }
+  g_dirtyPattern = !saveStateFile("/pattern.json", doc);
 }
 
 void loadUserPattern() {
   if (!FFat.exists("/pattern.json")) return;
   File f = FFat.open("/pattern.json", FILE_READ); if (!f) return;
-  JsonDocument doc; if (deserializeJson(doc, f)) { f.close(); return; }
+  JsonDocument doc(&g_jsonAllocator); if (deserializeJson(doc, f)) { f.close(); return; }
   userPattern.totalInteractions = doc["total"]|0;    userPattern.morningChats = doc["morning"]|0;
   userPattern.eveningChats      = doc["evening"]|0;  userPattern.lastInteraction = doc["lastTime"]|0UL;
   userPattern.recentMood        = doc["mood"]|"neutral"; userPattern.techQuestions = doc["tech"]|0;
@@ -95,19 +94,18 @@ void loadUserPattern() {
 }
 
 void saveSentimentData() {
-  JsonDocument doc; JsonArray arr = doc["history"].to<JsonArray>();
+  JsonDocument doc(&g_jsonAllocator); JsonArray arr = doc["history"].to<JsonArray>();
   for (const auto& s : sentimentHistory) {
     JsonObject o = arr.add<JsonObject>();
     o["s"] = s.sentiment; o["c"] = s.score; o["t"] = s.timestamp;
   }
-  File f = FFat.open("/sentiment.json", FILE_WRITE);
-  if (f) { serializeJson(doc, f); f.close(); }
+  g_dirtySentiment = !saveStateFile("/sentiment.json", doc);
 }
 
 void loadSentimentData() {
   if (!FFat.exists("/sentiment.json")) return;
   File f = FFat.open("/sentiment.json", FILE_READ); if (!f) return;
-  JsonDocument doc; if (deserializeJson(doc, f)) { f.close(); return; }
+  JsonDocument doc(&g_jsonAllocator); if (deserializeJson(doc, f)) { f.close(); return; }
   sentimentHistory.clear();
   for (JsonObject o : doc["history"].as<JsonArray>())
     sentimentHistory.push_back({o["s"].as<String>(), o["c"]|0.5f, o["t"]|0UL});

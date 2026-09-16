@@ -8,11 +8,16 @@
 // SECTION 6.5 ── DIRTY STATE FLUSH
 // ═══════════════════════════════════════════════════════
 void flushDirtyState() {
-  if (g_dirtyMemory)    { saveMemory();         g_dirtyMemory    = false; }
-  if (g_dirtyReminders) { saveReminders();       g_dirtyReminders = false; }
-  if (g_dirtySentiment) { saveSentimentData();   g_dirtySentiment = false; }
-  if (g_dirtyPattern)   { saveUserPattern();     g_dirtyPattern   = false; }
-  if (g_dirtyKnowledge) { saveKnowledgeDomains();g_dirtyKnowledge = false; }
-  if (g_dirtyChat)      { saveChatHistory();      g_dirtyChat      = false; }
+  if (!g_storageReady) return;
+  if (g_dirtySkills) saveSkills();
+  if (g_dirtyMemory)    { saveMemory(); }
+  if (g_dirtyReminders) { saveReminders(); }
+  if (g_dirtySentiment) { saveSentimentData(); }
+  if (g_dirtyPattern)   { saveUserPattern(); }
+  if (g_dirtyKnowledge) { saveKnowledgeDomains(); }
+  if (g_dirtyChat)      { saveChatHistory(); }
+  if (g_dirtyTasks)     { saveTasks(); }
+  if (g_dirtyApiStats)  { saveApiStats(); }
+  if (g_dirtySearchCache) { saveSearchCache(); }
 }
 
